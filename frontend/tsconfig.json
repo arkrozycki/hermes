@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "../../dist-electron",
+    "module": "nodenext",
+    "target": "ES2020",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["./*.ts", "./*.cts"]
+}
