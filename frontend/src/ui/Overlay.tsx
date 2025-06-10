@@ -75,6 +75,20 @@ export function Overlay() {
         return;
       }
 
+      // Ctrl+, / Cmd+, → open settings directly
+      if ((e.ctrlKey || e.metaKey) && e.key === ",") {
+        e.preventDefault();
+        setShowSettings(true);
+        return;
+      }
+
+      // Ctrl+/ / Cmd+/ → swap source & target languages
+      if ((e.ctrlKey || e.metaKey) && e.key === "/") {
+        e.preventDefault();
+        swapLanguages();
+        return;
+      }
+
       // Enter to open settings when query is 'settings'
       if (
         open &&
@@ -99,7 +113,7 @@ export function Overlay() {
       window.removeEventListener("keydown", handleKeyDown);
       // Removed ipcRenderer.removeAllListeners("toggle-overlay");
     };
-  }, [open, query]);
+  }, [open, query, fromLang, toLang]);
 
   const isQuerySettings = query.trim().toLowerCase() === "settings";
 
@@ -168,7 +182,7 @@ export function Overlay() {
 
           {query && !isQuerySettings && (
             <div className=" bg-popover text-popover-foreground mt-2 max-h-96 overflow-auto">
-              <SearchResults query={query} />
+              <SearchResults query={query} from={fromLang} to={toLang} />
             </div>
           )}
 
