@@ -21,6 +21,15 @@ export function Overlay() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const restoreInputValue = () => {
+    if (inputRef.current && query) {
+      inputRef.current.value = query;
+      // Trigger input event to sync CommandInput's internal state
+      const inputEvent = new Event('input', { bubbles: true });
+      inputRef.current.dispatchEvent(inputEvent);
+    }
+  };
+
   const swapLanguages = () => {
     setFromLang(toLang);
     setToLang(fromLang);
@@ -30,8 +39,12 @@ export function Overlay() {
     const toggleOverlay = () => {
       setOpen(true);
       setShowSettings(false);
-      setQuery("");
-      setTimeout(() => inputRef.current?.focus(), 0);
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          restoreInputValue();
+        }
+      }, 0);
     };
 
     window.electron?.on("toggle-overlay", toggleOverlay);
@@ -55,11 +68,15 @@ export function Overlay() {
         setOpen((prev) => {
           const next = !prev;
           if (next) {
-            setTimeout(() => inputRef.current?.focus(), 0);
+            setTimeout(() => {
+              if (inputRef.current) {
+                inputRef.current.focus();
+                restoreInputValue();
+              }
+            }, 0);
           }
           return next;
         });
-        setQuery("");
         setShowSettings(false);
         return;
       }
@@ -189,7 +206,7 @@ export function Overlay() {
           {/* Panel drawer */}
           <div
             className={cn(
-              "transition-all max-h-96 overflow-auto border-t border-border bg-popover text-popover-foreground",
+              "transition-all max-h-96 overflow-auto  border-border bg-popover text-popover-foreground",
               showSettings ? "mt-2" : "hidden"
             )}
           >

@@ -66,20 +66,68 @@ pids
 *.seed
 *.pid.lock
 
-# Python (common backend patterns)
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-.env
-.venv
-.pytest_cache/
-.coverage
-htmlcov/
+# Python & Django Backend
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/**/*$py.class
+backend/**/*.so
+backend/.Python
+backend/build/
+backend/develop-eggs/
+backend/dist/
+backend/downloads/
+backend/eggs/
+backend/.eggs/
+backend/lib/
+backend/lib64/
+backend/parts/
+backend/sdist/
+backend/var/
+backend/wheels/
+backend/share/python-wheels/
+backend/**/*.egg-info/
+backend/.installed.cfg
+backend/*.egg
+backend/MANIFEST
+
+# Django specific
+backend/db.sqlite3
+backend/db.sqlite3-journal
+backend/media/
+backend/staticfiles/
+backend/static/
+backend/collected-static/
+backend/locale/
+backend/*.log
+backend/celerybeat-schedule
+backend/celerybeat.pid
+
+# Django migrations (optional - some prefer to track these)
+# backend/*/migrations/*.py
+# backend/*/migrations/*.pyc
+# !backend/*/migrations/__init__.py
+
+# Python environments (backend specific)
+backend/env/
+backend/venv/
+backend/ENV/
+backend/.env
+backend/.venv
+backend/env.bak/
+backend/venv.bak/
+
+# Testing (backend specific)
+backend/**/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/.tox/
+backend/.nox/
+backend/**/.cache
+backend/nosetests.xml
+backend/coverage.xml
+backend/**/*.cover
+backend/**/*.py,cover
+backend/**/.hypothesis/
 
 # Logs
 logs

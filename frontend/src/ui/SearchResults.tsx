@@ -3,6 +3,13 @@ import { useEffect, useState } from "react";
 const STORAGE_KEY = "googleApiKey";
 const ENDPOINT = "https://translation.googleapis.com/language/translate/v2";
 
+// Simple in-memory cache for translations
+const translationCache = new Map<string, string>();
+
+const getCacheKey = (query: string, from: string, to: string): string => {
+  return `${from}:${to}:${query}`;
+};
+
 type Props = {
   /** The text the user wants translated */
   query: string;
@@ -36,6 +43,15 @@ export function SearchResults({ query, from = "en", to = "es" }: Props) {
       return;
     }
 
+    // Check cache first
+    const cacheKey = getCacheKey(query, from, to);
+    const cachedResult = translationCache.get(cacheKey);
+    if (cachedResult) {
+      setTranslated(cachedResult);
+      setLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
 
     // debounce actual network call
@@ -58,6 +74,12 @@ export function SearchResults({ query, from = "en", to = "es" }: Props) {
         const text =
           json?.data?.translations?.[0]?.translatedText ??
           `⚠️ ${res.status} ${res.statusText}`;
+        
+        // Cache successful translations (don't cache error messages)
+        if (text && !text.startsWith("⚠️")) {
+          translationCache.set(cacheKey, text);
+        }
+        
         setTranslated(text);
       } catch (err) {
         if (!(err instanceof DOMException && err.name === "AbortError")) {
