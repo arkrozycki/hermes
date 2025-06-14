@@ -8,5 +8,8 @@ export const config = {
 declare global {
     interface ImportMetaEnv {
         BACKEND_API_URL: string;
+        VITE_BACKEND_API_URL: string;
     }
-} 
+}
+
+export {}; 

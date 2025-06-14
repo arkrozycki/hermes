@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import { debouncedTranslateText } from "../../services/translationService";
 
-const STORAGE_KEY = "googleApiKey";
-const ENDPOINT = "https://translation.googleapis.com/language/translate/v2";
-
-// Simple in-memory cache for translations
-const translationCache = new Map<string, string>();
-
 const getCacheKey = (query: string, from: string, to: string): string => {
   return `${from}:${to}:${query}`;
 };

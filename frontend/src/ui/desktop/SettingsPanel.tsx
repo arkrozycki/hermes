@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 
 export function SettingsPanel() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { isAuthenticated, login, logout } = useAuth();
@@ -14,10 +15,11 @@ export function SettingsPanel() {
     setIsLoading(true);
 
     try {
-      const response = await settingService.registerEmail(email);
+      const response = await settingService.registerEmail({ email, password });
       if (response.success) {
         login(response.token);
         setEmail(""); // Clear the input after success
+        setPassword(""); // Clear the password
       } else {
         setError(response.error || "Failed to register email");
       }
@@ -33,7 +35,8 @@ export function SettingsPanel() {
       <div>
         <h2 className="text-lg font-semibold mb-2">Welcome to Hermes</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Your AI-powered translation assistant. Get started by registering your email.
+          Your AI-powered translation assistant. Get started by registering your
+          email.
         </p>
       </div>
 
@@ -64,20 +67,39 @@ export function SettingsPanel() {
               className="w-full rounded border px-3 py-2 text-sm"
               required
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="password"
+              className="block mb-1 text-sm font-medium"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              className="w-full rounded border px-3 py-2 text-sm"
+              required
+              minLength={8}
+            />
             <p className="mt-1 text-xs text-muted-foreground">
-              We'll send you updates about new features and important changes.
+              Password must be at least 8 characters long.
             </p>
           </div>
-          
+
           {error && (
             <div className="text-xs text-red-600 dark:text-red-400">
               {error}
             </div>
           )}
-          
+
           <button
             type="submit"
-            disabled={isLoading || !email.trim()}
+            disabled={isLoading || !email.trim() || !password.trim()}
             className="w-full px-3 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
             {isLoading ? "Creating Account..." : "Create Account"}

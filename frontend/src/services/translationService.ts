@@ -1,7 +1,5 @@
 import { debounce } from "../lib/utils";
-
-const STORAGE_KEY = "googleApiKey";
-const ENDPOINT = "https://translation.googleapis.com/language/translate/v2";
+import { apiService } from "./apiService";
 
 // Simple in-memory cache for translations
 const translationCache = new Map<string, string>();
@@ -21,30 +19,22 @@ export const translateText = async (query: string, from: string = "en", to: stri
     return Promise.resolve(cachedResult);
   }
 
-  const apiKey = localStorage.getItem(STORAGE_KEY);
-  if (!apiKey) {
-    throw new Error("API key not set. [⌘+,] to open settings.");
+  try {
+    const response = await apiService.translateText({
+      text: query,
+      source_language: from,
+      target_language: to
+    });
+
+    const text = response.translated_text;
+    if (text) {
+      translationCache.set(cacheKey, text);
+    }
+    return text;
+  } catch (error) {
+    console.error('Translation error:', error);
+    throw new Error("Failed to translate text. Please try again.");
   }
-
-  const response = await fetch(`${ENDPOINT}?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      q: query,
-      source: from,
-      target: to,
-      format: "text",
-    }),
-  });
-
-  const json = await response.json();
-  const text = json?.data?.translations?.[0]?.translatedText ?? `⚠️ ${response.status} ${response.statusText}`;
-
-  if (text && !text.startsWith("⚠️")) {
-    translationCache.set(cacheKey, text);
-  }
-
-  return text;
 };
 
 // Debounced version of translateText with the same type signature

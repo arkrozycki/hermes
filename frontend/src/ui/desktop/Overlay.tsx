@@ -28,7 +28,7 @@ export function Overlay() {
     if (inputRef.current && query) {
       inputRef.current.value = query;
       // Trigger input event to sync CommandInput's internal state
-      const inputEvent = new Event('input', { bubbles: true });
+      const inputEvent = new Event("input", { bubbles: true });
       inputRef.current.dispatchEvent(inputEvent);
     }
   };
@@ -140,8 +140,10 @@ export function Overlay() {
           open={open}
           modal={false}
           onOpenChange={(value) => {
-            if (value === false) return; // block closing
-            setOpen(value);
+            if (value === false) {
+              setOpen(false);
+              window.electron?.send("hide-window");
+            }
           }}
           className=""
           onEscapeKeyDown={(e) => {
@@ -150,11 +152,18 @@ export function Overlay() {
           }}
         >
           <div className="relative">
+            {/* Draggable region - only on the left side */}
+            <div
+              className="absolute left-0 top-0 w-8 h-8 cursor-move"
+              style={{ WebkitAppRegion: "drag" }}
+            />
+
             <div className="absolute right-10 top-3 flex gap-1 items-center z-10">
               <select
                 value={fromLang}
                 onChange={(e) => setFromLang(e.target.value)}
-                className=" border-input bg-background text-foreground text-xs px-2 py-1 rounded"
+                className="border-input bg-background text-foreground text-xs px-2 py-1 rounded"
+                style={{ WebkitAppRegion: "no-drag" }}
               >
                 <option value="en">EN</option>
                 <option value="es">ES</option>
@@ -162,7 +171,8 @@ export function Overlay() {
 
               <button
                 onClick={swapLanguages}
-                className="text-xs px-1 py-1  rounded hover:bg-muted"
+                className="text-xs px-1 py-1 rounded hover:bg-muted"
+                style={{ WebkitAppRegion: "no-drag" }}
               >
                 ⇄
               </button>
@@ -170,7 +180,8 @@ export function Overlay() {
               <select
                 value={toLang}
                 onChange={(e) => setToLang(e.target.value)}
-                className=" border-input bg-background text-foreground text-xs px-2 py-1 rounded"
+                className="border-input bg-background text-foreground text-xs px-2 py-1 rounded"
+                style={{ WebkitAppRegion: "no-drag" }}
               >
                 <option value="en">EN</option>
                 <option value="es">ES</option>
@@ -186,9 +197,10 @@ export function Overlay() {
                   setUserShowSettings(false);
                 }
               }}
+              style={{ WebkitAppRegion: "no-drag" }}
             />
           </div>
-          <CommandList>
+          <CommandList style={{ WebkitAppRegion: "no-drag" }}>
             {isQuerySettings && isAuthenticated && (
               <CommandGroup heading="Suggestions">
                 <CommandItem onSelect={() => setUserShowSettings(true)}>
@@ -199,7 +211,10 @@ export function Overlay() {
           </CommandList>
 
           {query && !isQuerySettings && !showSettings && isAuthenticated && (
-            <div className="bg-popover text-popover-foreground mt-2 max-h-96 overflow-auto">
+            <div
+              className="bg-popover text-popover-foreground mt-2 max-h-96 overflow-auto"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               <SearchResults query={query} from={fromLang} to={toLang} />
             </div>
           )}
@@ -210,6 +225,7 @@ export function Overlay() {
               "transition-all max-h-96 overflow-auto border-border bg-popover text-popover-foreground",
               showSettings ? "mt-2" : "hidden"
             )}
+            style={{ WebkitAppRegion: "no-drag" }}
           >
             {showSettings && <SettingsPanel />}
           </div>

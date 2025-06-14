@@ -6,13 +6,19 @@ interface RegistrationResponse {
     error?: string;
 }
 
+interface AuthRequest {
+    email: string;
+    password: string;
+}
+
 class SettingService {
     private static readonly TOKEN_KEY = 'jwt_token';
+    private static readonly REFRESH_TOKEN_KEY = 'refresh_token';
 
     // Register with email
-    async registerEmail(email: string): Promise<RegistrationResponse> {
+    async registerEmail(request: AuthRequest): Promise<RegistrationResponse> {
         try {
-            const response = await apiService.authenticateEmail(email);
+            const response = await apiService.authenticateEmail(request);
             if (response.token) {
                 this.saveToken(response.token);
                 return { success: true, token: response.token };
@@ -37,6 +43,16 @@ class SettingService {
         return localStorage.getItem(SettingService.TOKEN_KEY);
     }
 
+    // Save refresh token
+    saveRefreshToken(token: string): void {
+        localStorage.setItem(SettingService.REFRESH_TOKEN_KEY, token);
+    }
+
+    // Get refresh token
+    getRefreshToken(): string | null {
+        return localStorage.getItem(SettingService.REFRESH_TOKEN_KEY);
+    }
+
     // Check if user is authenticated
     isAuthenticated(): boolean {
         const token = this.getToken();
@@ -46,6 +62,7 @@ class SettingService {
     // Clear authentication
     logout(): void {
         localStorage.removeItem(SettingService.TOKEN_KEY);
+        localStorage.removeItem(SettingService.REFRESH_TOKEN_KEY);
     }
 }
 

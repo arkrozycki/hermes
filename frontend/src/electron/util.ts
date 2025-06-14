@@ -1,6 +1,15 @@
-import { ipcMain, WebContents, WebFrameMain } from "electron";
+import { ipcMain, WebContents, WebFrameMain, IpcMainInvokeEvent } from "electron";
 import { getUIPath } from "./pathResolver.js";
 import { pathToFileURL } from "url";
+import { AuthResponse } from "../types/auth.js";
+
+// Define the event payload mapping
+export type EventPayloadMapping = {
+  'store-tokens': [AuthResponse | null];
+  'get-tokens': [];
+  'getStaticData': [];
+  'statistics': [{ cpuUsage: number; ramUsage: number; storageData: number }];
+};
 
 // Checks if you are in development mode
 export function isDev(): boolean {
@@ -8,15 +17,21 @@ export function isDev(): boolean {
 }
 
 // Making IPC Typesafe
-export function ipcMainHandle<Key extends keyof EventPayloadMapping>(key: Key, handler: () => EventPayloadMapping[Key]) {
-    ipcMain.handle(key, (event) => {
+export function ipcMainHandle<Key extends keyof EventPayloadMapping>(
+    key: Key,
+    handler: (event: IpcMainInvokeEvent, ...args: EventPayloadMapping[Key]) => Promise<any> | any
+) {
+    ipcMain.handle(key, (event, ...args) => {
         if (event.senderFrame) validateEventFrame(event.senderFrame);
-
-        return handler()
+        return handler(event, ...(args as EventPayloadMapping[Key]));
     });
 }
 
-export function ipcWebContentsSend<Key extends keyof EventPayloadMapping>(key: Key, webContents: WebContents, payload: EventPayloadMapping[Key]) {
+export function ipcWebContentsSend<Key extends keyof EventPayloadMapping>(
+    key: Key,
+    webContents: WebContents,
+    payload: EventPayloadMapping[Key][0]
+) {
     webContents.send(key, payload);
 }
 
