@@ -1,25 +1,28 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   CommandDialog,
   CommandInput,
   CommandList,
   CommandGroup,
   CommandItem,
-} from "@/components/ui/command";
+} from "../../components/ui/command";
 
 import { SettingsPanel } from "./SettingsPanel";
 import { SearchResults } from "./SearchResults";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function Overlay() {
   const [open, setOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [userShowSettings, setUserShowSettings] = useState(false);
   const [query, setQuery] = useState("");
-
   const [fromLang, setFromLang] = useState("en");
   const [toLang, setToLang] = useState("es");
-
   const inputRef = useRef<HTMLInputElement>(null);
+  const { isAuthenticated, showSettings: authShowSettings } = useAuth();
+
+  // Combined settings visibility - show if either auth requires it or user toggled it
+  const showSettings = !isAuthenticated || userShowSettings;
 
   const restoreInputValue = () => {
     if (inputRef.current && query) {
@@ -38,7 +41,9 @@ export function Overlay() {
   useEffect(() => {
     const toggleOverlay = () => {
       setOpen(true);
-      setShowSettings(false);
+      if (isAuthenticated) {
+        setUserShowSettings(false);
+      }
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus();
@@ -55,7 +60,7 @@ export function Overlay() {
     return () => {
       window.electron?.off("toggle-overlay", toggleOverlay);
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // Open with Ctrl+K / Cmd+K
   useEffect(() => {
@@ -77,7 +82,9 @@ export function Overlay() {
           }
           return next;
         });
-        setShowSettings(false);
+        if (isAuthenticated) {
+          setUserShowSettings(false);
+        }
         return;
       }
 
@@ -88,14 +95,14 @@ export function Overlay() {
         query.trim().toLowerCase() === "settings"
       ) {
         e.preventDefault();
-        setShowSettings(true);
+        setUserShowSettings(true);
         return;
       }
 
       // Ctrl+, / Cmd+, → open settings directly
       if ((e.ctrlKey || e.metaKey) && e.key === ",") {
         e.preventDefault();
-        setShowSettings(true);
+        setUserShowSettings(true);
         return;
       }
 
@@ -113,24 +120,16 @@ export function Overlay() {
         query.trim().toLowerCase() === "settings"
       ) {
         e.preventDefault();
-        setShowSettings(true);
+        setUserShowSettings(true);
         return;
       }
     };
 
-    // ipcRenderer.on("toggle-overlay", () => {
-    //   setOpen(true);
-    //   setShowSettings(false);
-    //   setQuery("");
-    //   setTimeout(() => inputRef.current?.focus(), 0);
-    // });
-
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      // Removed ipcRenderer.removeAllListeners("toggle-overlay");
     };
-  }, [open, query, fromLang, toLang]);
+  }, [open, query, fromLang, toLang, isAuthenticated]);
 
   const isQuerySettings = query.trim().toLowerCase() === "settings";
 
@@ -183,22 +182,24 @@ export function Overlay() {
               placeholder="Text to translate ..."
               onValueChange={(val) => {
                 setQuery(val);
-                setShowSettings(false);
+                if (isAuthenticated) {
+                  setUserShowSettings(false);
+                }
               }}
             />
           </div>
           <CommandList>
-            {isQuerySettings && (
+            {isQuerySettings && isAuthenticated && (
               <CommandGroup heading="Suggestions">
-                <CommandItem onSelect={() => setShowSettings(true)}>
+                <CommandItem onSelect={() => setUserShowSettings(true)}>
                   settings
                 </CommandItem>
               </CommandGroup>
             )}
           </CommandList>
 
-          {query && !isQuerySettings && (
-            <div className=" bg-popover text-popover-foreground mt-2 max-h-96 overflow-auto">
+          {query && !isQuerySettings && !showSettings && isAuthenticated && (
+            <div className="bg-popover text-popover-foreground mt-2 max-h-96 overflow-auto">
               <SearchResults query={query} from={fromLang} to={toLang} />
             </div>
           )}
@@ -206,7 +207,7 @@ export function Overlay() {
           {/* Panel drawer */}
           <div
             className={cn(
-              "transition-all max-h-96 overflow-auto  border-border bg-popover text-popover-foreground",
+              "transition-all max-h-96 overflow-auto border-border bg-popover text-popover-foreground",
               showSettings ? "mt-2" : "hidden"
             )}
           >

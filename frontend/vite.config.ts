@@ -7,7 +7,8 @@ import path from 'path';
 export default defineConfig({
   plugins: [react(), tailwindcss(), tsconfigPaths()],
   define: {
-    // 'process.env.ELECTRON_RENDERER_URL': 'true',
+    // Ensure env variables are properly exposed
+    'process.env': {}
   },
   resolve: {
     alias: {
@@ -22,4 +23,5 @@ export default defineConfig({
     port: 3524,
     strictPort: true,
   },
+  envPrefix: 'VITE_' // Ensure Vite picks up our env variables
 });
