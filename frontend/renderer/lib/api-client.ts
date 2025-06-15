@@ -20,7 +20,8 @@ export async function apiClient<T>(
   const accessToken = authService.getAccessToken()
   const headers = new Headers(options.headers)
 
-  if (accessToken) {
+  // Add authorization header for all requests except token endpoints
+  if (accessToken && !endpoint.includes('/token')) {
     headers.set('Authorization', `Bearer ${accessToken}`)
   }
 
@@ -32,14 +33,25 @@ export async function apiClient<T>(
   try {
     const response = await fetch(`${API_URL}${endpoint}`, config)
 
-    // If we get a 401 and have a refresh token, try to refresh
-    if (response.status === 401 && authService.getRefreshToken()) {
+    // Handle 401 errors
+    if (response.status === 401) {
+      // Don't try to refresh if we're already on a token endpoint
+      if (endpoint.includes('/token')) {
+        await authService.logout()
+        throw new Error('Authentication failed')
+      }
+
+      const refreshToken = authService.getRefreshToken()
+      if (!refreshToken) {
+        await authService.logout()
+        throw new Error('No refresh token available')
+      }
+
       try {
         await authService.refreshAccessToken()
         // Retry the original request with the new token
         return apiClient<T>(endpoint, options)
       } catch (refreshError) {
-        // If refresh fails, clear auth and throw
         await authService.logout()
         throw new Error('Session expired. Please log in again.')
       }

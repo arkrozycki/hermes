@@ -1,15 +1,17 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, Translation
 
-class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'api_key')
-    fieldsets = UserAdmin.fieldsets + (
-        ('API Settings', {'fields': ('api_key',)}),
-    )
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        ('API Settings', {'fields': ('api_key',)}),
-    )
+@admin.register(CustomUser)
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'is_active', 'date_joined')
+    search_fields = ('username', 'email')
+    list_filter = ('is_active', 'is_staff')
 
-# Register the CustomUser model with the custom admin class
-admin.site.register(CustomUser, CustomUserAdmin)
+@admin.register(Translation)
+class TranslationAdmin(admin.ModelAdmin):
+    list_display = ('source_language', 'target_language', 'source_text', 'translated_text', 'usage_count', 'last_accessed')
+    search_fields = ('source_text', 'translated_text')
+    list_filter = ('source_language', 'target_language')
+    readonly_fields = ('created_at', 'last_accessed', 'usage_count')
+    ordering = ('-last_accessed',)

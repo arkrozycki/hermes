@@ -8,9 +8,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .serializers import UserRegistrationSerializer
+from .models import Translation
 import logging
 import requests
 import os
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -62,7 +64,7 @@ def example_view(request):
 @permission_classes([IsAuthenticated])
 def translate_text(request):
     """
-    Translate text using Google Cloud Translate API.
+    Translate text using Google Cloud Translate API with caching.
     Required fields in request:
     - text: The text to translate
     - target_language: The target language code (e.g., 'es', 'fr', 'de')
@@ -87,7 +89,35 @@ def translate_text(request):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        # Make request to Google Translate API
+        # First try to find in cache with exact source language match
+        cached_translation = Translation.objects.filter(
+            source_text=text,
+            target_language=target_language,
+            source_language=source_language
+        ).first()
+
+        if not cached_translation:
+            # If not found with exact match, try without source language
+            cached_translation = Translation.objects.filter(
+                source_text=text,
+                target_language=target_language
+            ).first()
+
+        if cached_translation:
+            # Update usage stats
+            cached_translation.usage_count += 1
+            cached_translation.last_accessed = timezone.now()
+            cached_translation.save()
+            
+            logger.info(f"Cache hit for translation: {text[:50]}...")
+            return Response({
+                'translated_text': cached_translation.translated_text,
+                'source_language': cached_translation.source_language,
+                'target_language': cached_translation.target_language,
+                'from_cache': True
+            })
+
+        # If not in cache, proceed with Google API call
         url = 'https://translation.googleapis.com/language/translate/v2'
         params = {
             'key': api_key,
@@ -105,11 +135,26 @@ def translate_text(request):
             raise Exception('Unexpected API response format')
 
         translation = result['data']['translations'][0]
+        detected_source_language = translation.get('detectedSourceLanguage', source_language)
 
+        # Store in cache
+        try:
+            Translation.objects.create(
+                source_text=text,
+                translated_text=translation['translatedText'],
+                source_language=detected_source_language,
+                target_language=target_language
+            )
+        except Exception as e:
+            logger.warning(f"Failed to cache translation: {str(e)}")
+            # Continue even if caching fails
+
+        logger.info(f"Cache miss for translation: {text[:50]}...")
         return Response({
             'translated_text': translation['translatedText'],
-            'source_language': translation.get('detectedSourceLanguage', source_language),
-            'target_language': target_language
+            'source_language': detected_source_language,
+            'target_language': target_language,
+            'from_cache': False
         })
 
     except requests.exceptions.RequestException as e:

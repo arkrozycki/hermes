@@ -43,6 +43,13 @@ class AuthService {
     localStorage.removeItem('user')
   }
 
+  private forceRedirectToLogin() {
+    if (typeof window !== 'undefined') {
+      // Force redirect by replacing the current history entry
+      window.location.replace('/login')
+    }
+  }
+
   public async login(credentials: LoginCredentials): Promise<void> {
     const response = await apiClient<LoginResponse>('/token', {
       method: 'POST',
@@ -73,6 +80,7 @@ class AuthService {
       console.error('Logout error:', error)
     } finally {
       this.clearAuthData()
+      this.forceRedirectToLogin()
     }
   }
 
@@ -85,12 +93,13 @@ class AuthService {
       return response.user
     } catch {
       this.clearAuthData()
+      this.forceRedirectToLogin()
       return null
     }
   }
 
   public isAuthenticated(): boolean {
-    return !!this.accessToken
+    return !!this.accessToken && !!this.refreshToken
   }
 
   public getUser(): User | null {
@@ -106,7 +115,10 @@ class AuthService {
   }
 
   public async refreshAccessToken(): Promise<void> {
-    if (!this.refreshToken) {
+    const refreshToken = this.refreshToken
+    if (!refreshToken) {
+      this.clearAuthData()
+      this.forceRedirectToLogin()
       throw new Error('No refresh token available')
     }
 
@@ -118,16 +130,24 @@ class AuthService {
     // Create a new refresh promise
     this.refreshPromise = (async () => {
       try {
-        const response = await apiClient<LoginResponse>('/token/refresh', {
+        // Make a direct fetch call for refresh to avoid circular dependency
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/token/refresh`, {
           method: 'POST',
-          body: JSON.stringify({ refresh: this.refreshToken }),
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({ refresh: refreshToken }),
         })
-        this.setAuthData(response)
+
+        if (!response.ok) {
+          throw new Error('Failed to refresh token')
+        }
+
+        const data = await response.json()
+        this.setAuthData(data)
       } catch (error) {
         this.clearAuthData()
+        this.forceRedirectToLogin()
         throw error
       } finally {
         this.refreshPromise = null
