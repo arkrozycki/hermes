@@ -15,9 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.views.generic import RedirectView
+import logging
+
+logger = logging.getLogger(__name__)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),  # Include the api app's URLs
+    path('admin/', admin.site.urls),  # Admin with trailing slash
+    re_path(r'^admin$', RedirectView.as_view(url='/admin/', permanent=True)),  # Redirect admin without slash to admin with slash
+    path('api/', include('api.urls')),  # API with trailing slash for proper URL handling
 ]
+
+# Debug logging
+logger.debug("URL patterns: %s", urlpatterns)
