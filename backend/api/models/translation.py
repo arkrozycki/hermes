@@ -1,11 +1,4 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
-
-# Create your models here.
-
-class CustomUser(AbstractUser):
-    api_key = models.CharField(max_length=255, blank=True, null=True)
 
 class Translation(models.Model):
     source_text = models.TextField()
@@ -24,4 +17,4 @@ class Translation(models.Model):
         unique_together = ['source_text', 'source_language', 'target_language']
         
     def __str__(self):
-        return f"{self.source_language} -> {self.target_language}: {self.source_text[:50]}..."
+        return f"{self.source_language} -> {self.target_language}: {self.source_text[:50]}..." 

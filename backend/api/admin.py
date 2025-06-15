@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Translation
+from .models import CustomUser, Translation, UserTranslationHistory
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
@@ -15,3 +15,11 @@ class TranslationAdmin(admin.ModelAdmin):
     list_filter = ('source_language', 'target_language')
     readonly_fields = ('created_at', 'last_accessed', 'usage_count')
     ordering = ('-last_accessed',)
+
+@admin.register(UserTranslationHistory)
+class UserTranslationHistoryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'source_language', 'target_language', 'input_text', 'output_text', 'timestamp', 'was_cached')
+    list_filter = ('was_cached', 'timestamp')
+    search_fields = ('user__username', 'input_text', 'output_text')
+    readonly_fields = ('timestamp',)
+    ordering = ('-timestamp',)

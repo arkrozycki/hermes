@@ -56,13 +56,13 @@ export function Translation() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         <div className="relative">
           <Textarea
             placeholder="Enter text to translate..."
             value={text}
             onChange={e => setText(e.target.value)}
-            className="min-h-[200px] resize-none"
+            className="max-h-[40px] min-h-[40px] resize-none"
           />
         </div>
         <div className="relative">
@@ -70,7 +70,7 @@ export function Translation() {
             placeholder="Translation will appear here..."
             value={translatedText}
             readOnly
-            className="bg-muted min-h-[200px] resize-none"
+            className="bg-muted max-h-[40px] min-h-[40px] resize-none"
           />
           {isLoading && (
             <div className="bg-background/50 absolute inset-0 flex items-center justify-center">

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import logging
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -157,6 +158,19 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+}
+
+# JWT Settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Access token expires in 1 hour
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),     # Refresh token expires in 1 day
+    'ROTATE_REFRESH_TOKENS': True,                   # Get new refresh token with each refresh
+    'BLACKLIST_AFTER_ROTATION': True,                # Blacklist old refresh tokens
+    'UPDATE_LAST_LOGIN': True,                       # Update last login timestamp
+    'ALGORITHM': 'HS256',                            # Algorithm used to sign the token
+    'SIGNING_KEY': SECRET_KEY,                       # Key used to sign the token
+    'AUTH_HEADER_TYPES': ('Bearer',),               # Authorization header type
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
 # Logging configuration
