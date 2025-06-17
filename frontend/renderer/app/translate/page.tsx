@@ -3,8 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authService } from '@/lib/services/auth.service'
-import { Translation } from '@/components/translation'
-import { Card } from '@/components/ui/card'
+import { TranslationChat } from '@/components/translation-chat'
 
 export default function TranslatePage() {
   const router = useRouter()
@@ -18,9 +17,7 @@ export default function TranslatePage() {
 
   return (
     <div className="container mx-auto p-4">
-      <Card className="p-6">
-        <Translation />
-      </Card>
+      <TranslationChat />
     </div>
   )
 }

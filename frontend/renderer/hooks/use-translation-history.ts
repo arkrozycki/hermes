@@ -46,7 +46,7 @@ export function useTranslationHistory() {
       timestamp: new Date().toISOString(),
       was_cached: false
     }
-    setTranslations(prev => [newTranslation, ...prev])
+    setTranslations(prev => [newTranslation, ...prev.filter(t => t.id !== newTranslation.id)])
   }, [])
 
   const updateTranslation = useCallback(async (id: number, outputText: string) => {

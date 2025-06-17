@@ -13,14 +13,16 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-import { ArrowLeftRight } from 'lucide-react'
+import { ArrowLeftRight, ArrowRightLeft } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-interface LanguageSelectorProps {
+export interface LanguageSelectorProps {
   sourceLanguage: string
   targetLanguage: string
   onSourceChange: (value: string) => void
   onTargetChange: (value: string) => void
   onSwap: () => void
+  className?: string
 }
 
 const languages = [
@@ -41,24 +43,23 @@ export function LanguageSelector({
   targetLanguage,
   onSourceChange,
   onTargetChange,
-  onSwap
+  onSwap,
+  className
 }: LanguageSelectorProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className={cn("flex items-center gap-2", className)}>
       <Select
         value={sourceLanguage}
-        onValueChange={onSourceChange}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select language" />
+        onValueChange={onSourceChange}
+      >
+        <SelectTrigger className="w-24 border-0 text-xs">
+          {sourceLanguage}
         </SelectTrigger>
-        <SelectContent>
-          {languages.map(lang => (
-            <SelectItem
-              key={lang.code}
-              value={lang.code}>
+        <SelectContent className="border-0 shadow-md text-xs">
+          {languages.map((lang) => (
+            <SelectItem key={lang.code} value={lang.code} className="border-0 text-xs">
               <div className="flex items-center gap-2">
-                <span>{lang.flag}</span>
-                <span>{lang.name}</span>
+                <span>{lang.code}</span>
               </div>
             </SelectItem>
           ))}
@@ -72,8 +73,8 @@ export function LanguageSelector({
               variant="ghost"
               size="icon"
               onClick={onSwap}
-              className="h-8 w-8">
-              <ArrowLeftRight className="h-4 w-4" />
+              className="h-7 w-7 text-muted-foreground opacity-60">
+              <ArrowRightLeft className="h-3 w-3" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -84,18 +85,16 @@ export function LanguageSelector({
 
       <Select
         value={targetLanguage}
-        onValueChange={onTargetChange}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select language" />
+        onValueChange={onTargetChange}
+      >
+        <SelectTrigger className="w-24 border-0 text-xs">
+          {targetLanguage}
         </SelectTrigger>
-        <SelectContent>
-          {languages.map(lang => (
-            <SelectItem
-              key={lang.code}
-              value={lang.code}>
+        <SelectContent className="border-0 shadow-md text-xs">
+          {languages.map((lang) => (
+            <SelectItem key={lang.code} value={lang.code} className="border-0 text-xs">
               <div className="flex items-center gap-2">
-                <span>{lang.flag}</span>
-                <span>{lang.name}</span>
+                <span>{lang.code}</span>
               </div>
             </SelectItem>
           ))}
