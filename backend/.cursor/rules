@@ -1,0 +1,132 @@
+# Django Project Structure Rules
+
+# Core Application Structure
+/api/                      # Main application directory
+  /models/                 # Database models
+  /views/                  # View logic and handlers
+  /migrations/            # Database migrations
+  /tests/                 # Test files
+  /templates/             # HTML templates
+  /static/                # Static files (CSS, JS, images)
+  /management/            # Custom management commands
+  /utils/                 # Utility functions and helpers
+
+# Project Configuration
+/backend/                 # Project settings and configuration
+  settings.py            # Project settings
+  urls.py                # Main URL configuration
+  wsgi.py               # WSGI configuration
+  asgi.py               # ASGI configuration
+
+# Static and Media Files
+/static/                 # Project-wide static files
+/media/                  # User-uploaded media files
+/staticfiles/            # Collected static files
+
+# Docker Operations
+1. Running Django Commands:
+   - Use docker exec for all Django commands:
+     docker exec -it <container_name> python manage.py <command>
+   - Common commands:
+     - Migrations: docker exec -it <container_name> python manage.py migrate
+     - Show migrations: docker exec -it <container_name> python manage.py showmigrations
+     - Create migrations: docker exec -it <container_name> python manage.py makemigrations
+     - Shell: docker exec -it <container_name> python manage.py shell
+     - Test: docker exec -it <container_name> python manage.py test
+
+2. Container Management:
+   - Start containers: docker-compose up
+   - Start in background: docker-compose up -d
+   - Stop containers: docker-compose down
+   - Rebuild containers: docker-compose up --build
+   - View logs: docker-compose logs -f
+
+3. Development Workflow:
+   - Always run Django commands through Docker
+   - Use docker-compose for container orchestration
+   - Check container status before running commands
+   - Use docker-compose logs for debugging
+   - Rebuild containers when dependencies change
+
+# Best Practices
+1. Models:
+   - Keep models in separate files under /api/models/
+   - Use meaningful model names
+   - Include docstrings for models and fields
+   - Use appropriate field types and constraints
+   - Implement proper model relationships
+
+2. Admin Registration:
+   - Register all models in admin.py
+   - Use @admin.register decorator for clean registration
+   - Implement custom ModelAdmin classes for each model
+   - Configure list_display for important fields
+   - Add search_fields for text-based searching
+   - Use list_filter for filtering options
+   - Set readonly_fields for auto-generated fields
+   - Configure ordering for better data presentation
+   - Add custom admin actions when needed
+   - Implement proper field validation
+   - Use admin.site.register() for simple registrations
+   - Keep admin.py organized and well-documented
+
+3. Views:
+   - Organize views in /api/views/ directory
+   - Use class-based views when possible
+   - Keep view logic clean and focused
+   - Implement proper error handling
+   - Use appropriate HTTP methods
+
+4. URLs:
+   - Use descriptive URL patterns
+   - Implement proper URL namespacing
+   - Keep URL patterns organized and documented
+
+5. Templates:
+   - Use template inheritance
+   - Keep templates modular
+   - Follow DRY principles
+   - Use template tags appropriately
+
+6. Static Files:
+   - Organize static files by type (css, js, images)
+   - Use proper static file references
+   - Implement proper caching strategies
+
+7. Testing:
+   - Write tests for models, views, and forms
+   - Use appropriate test cases
+   - Maintain good test coverage
+   - Follow testing best practices
+
+8. Security:
+   - Implement proper authentication
+   - Use secure password hashing
+   - Protect sensitive data
+   - Follow Django security best practices
+
+9. Performance:
+   - Optimize database queries
+   - Use appropriate caching
+   - Implement proper indexing
+   - Monitor and optimize performance
+
+10. Code Style:
+    - Follow PEP 8 guidelines
+    - Use meaningful variable names
+    - Write clear docstrings
+    - Keep functions focused and small
+
+11. Documentation:
+    - Maintain clear documentation
+    - Document API endpoints
+    - Keep README up to date
+    - Document complex logic
+
+# Important Files to Monitor
+- requirements.txt        # Project dependencies
+- manage.py              # Django management script
+- docker-compose.yml     # Docker configuration
+- Dockerfile            # Docker build instructions
+- .gitignore            # Git ignore rules
+- README.md             # Project documentation 

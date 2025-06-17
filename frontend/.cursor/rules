@@ -1,0 +1,184 @@
+# Project Structure and Guidelines
+
+## Technology Stack
+- Next.js 15.x (App Router)
+- Electron 33.x
+- TypeScript 5.x
+- TailwindCSS 3.x
+- Shadcn/UI Components
+- React 18.x
+- JWT Authentication
+- RESTful API
+
+## Directory Structure
+- `/renderer` - Main application code
+  - `/app` - Next.js app router pages and layouts
+  - `/components` - Reusable React components
+    - `/ui` - Shadcn/UI components (do not modify these directly)
+    - `/custom` - Custom components that extend or compose Shadcn/UI components
+  - `/hooks` - Custom React hooks
+  - `/lib` - Utility functions and shared code
+  - `/services` - API and service layer
+    - `/api` - API client and endpoints
+    - `/auth` - Authentication services
+  - `/styles` - Global styles and TailwindCSS configuration
+  - `/types` - TypeScript type definitions
+  - `/utils` - Helper functions and utilities
+- `/main` - Electron main process code
+- `/resources` - Static resources and assets
+
+## API and Backend Guidelines
+
+### Authentication
+- Use JWT tokens for authentication
+- Store tokens securely using electron-store
+- Implement token refresh mechanism
+- Handle token expiration gracefully
+- Use secure HTTP-only cookies when applicable
+- Implement proper logout mechanism
+- Clear sensitive data on logout
+
+### Protected Routes
+- Implement route protection middleware
+- Redirect unauthenticated users to login
+- Handle authentication state globally
+- Implement proper loading states during auth checks
+- Cache authentication state appropriately
+
+### API Structure
+- Use RESTful API conventions
+- Implement proper error handling
+- Use proper HTTP status codes
+- Implement request/response interceptors
+- Handle API errors consistently
+- Implement proper retry mechanisms
+- Use proper API versioning
+
+### API Security
+- Implement rate limiting
+- Use HTTPS for all API calls
+- Sanitize API responses
+- Implement proper CORS policies
+- Use proper API key management
+- Implement request validation
+- Use proper error messages
+
+### API Documentation
+- Document all API endpoints
+- Include request/response examples
+- Document authentication requirements
+- Keep API documentation up to date
+- Use OpenAPI/Swagger when applicable
+
+## Code Style Guidelines
+
+### TypeScript
+- Use strict type checking
+- Avoid `any` type
+- Use interfaces for object shapes
+- Use type inference where possible
+- Document complex types with JSDoc
+
+### React Components
+- Use functional components with hooks
+- Follow atomic design principles
+- Implement proper prop types
+- Use React.memo for performance optimization when needed
+- Keep components focused and single-responsibility
+
+### Shadcn/UI Components
+- Use components from `/components/ui` directory
+- Do not modify Shadcn/UI component styles directly
+- Extend components through composition rather than style overrides
+- Use the `className` prop for minor style adjustments when necessary
+- Follow Shadcn/UI's theming system for consistent styling
+- Create custom variants through the component's configuration file
+- Use the `cn()` utility for conditional class merging
+- Document any custom variants or extensions
+
+### Styling
+- Use TailwindCSS utility classes
+- Follow mobile-first responsive design
+- Use CSS variables for theming
+- Maintain consistent spacing and sizing
+- Use Shadcn/UI components as base
+- Avoid direct style overrides of Shadcn/UI components
+- Use the theme configuration for global style changes
+- Follow the established design system tokens
+
+### State Management
+- Use React hooks for local state
+- Implement proper error boundaries
+- Follow React best practices for state updates
+- Use proper loading states
+- Implement proper API state management
+- Handle loading and error states consistently
+
+### Security
+- Sanitize user inputs
+- Implement proper authentication flows
+- Use environment variables for sensitive data
+- Follow Electron security best practices
+- Implement proper CSP headers
+- Implement proper XSS protection
+- Use proper input validation
+- Implement proper CSRF protection
+
+### Performance
+- Implement proper code splitting
+- Use proper caching strategies
+- Optimize images and assets
+- Monitor bundle sizes
+- Implement proper lazy loading
+- Implement proper API caching
+- Use proper request debouncing
+- Implement proper request queuing
+
+### Testing
+- Write unit tests for critical components
+- Implement E2E tests for critical flows
+- Use proper test coverage tools
+- Follow testing best practices
+- Test authentication flows
+- Test API integration
+- Test error handling
+- Test security measures
+
+### Git Workflow
+- Use conventional commits
+- Implement proper branching strategy
+- Review code before merging
+- Keep commits atomic and focused
+
+### Documentation
+- Document complex logic
+- Keep README up to date
+- Document API endpoints
+- Use proper JSDoc comments
+- Document any custom Shadcn/UI component extensions
+- Document authentication flows
+- Document security measures
+
+## Build and Deployment
+- Follow proper versioning
+- Implement proper CI/CD
+- Use proper environment configurations
+- Follow proper release process
+- Implement proper API versioning
+- Use proper deployment environments
+
+## Accessibility
+- Follow WCAG guidelines
+- Implement proper ARIA attributes
+- Ensure keyboard navigation
+- Maintain proper color contrast
+- Preserve Shadcn/UI's built-in accessibility features
+
+## Error Handling
+- Implement proper error boundaries
+- Use proper error logging
+- Implement proper fallback UI
+- Handle edge cases properly
+- Implement proper API error handling
+- Use proper error messages
+- Implement proper error recovery 
