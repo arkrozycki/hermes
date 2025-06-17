@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Edit2, Check, X } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 
 export interface TranslationHistory {
   id: number
@@ -18,9 +19,38 @@ interface HistoryProps {
   onLoadMore: () => void
   hasMore: boolean
   isLoading: boolean
+  onUpdateTranslation: (id: number, outputText: string) => Promise<void>
 }
 
-export function History({ translations, onLoadMore, hasMore, isLoading }: HistoryProps) {
+export function History({ translations, onLoadMore, hasMore, isLoading, onUpdateTranslation }: HistoryProps) {
+  const [editingId, setEditingId] = React.useState<number | null>(null)
+  const [editText, setEditText] = React.useState('')
+  const [isUpdating, setIsUpdating] = React.useState(false)
+
+  const handleEdit = (translation: TranslationHistory) => {
+    setEditingId(translation.id)
+    setEditText(translation.output_text)
+  }
+
+  const handleSave = async () => {
+    if (!editingId) return
+    
+    try {
+      setIsUpdating(true)
+      await onUpdateTranslation(editingId, editText)
+      setEditingId(null)
+    } catch (error) {
+      console.error('Failed to update translation:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleCancel = () => {
+    setEditingId(null)
+    setEditText('')
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <ScrollArea className="p-4">
@@ -41,10 +71,54 @@ export function History({ translations, onLoadMore, hasMore, isLoading }: Histor
                     </span>
                   )}
                 </div>
-                <span>{new Date(translation.timestamp).toLocaleString()}</span>
+                <div className="flex items-center gap-2">
+                  <span>{new Date(translation.timestamp).toLocaleString()}</span>
+                  {editingId === translation.id ? (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={handleSave}
+                        disabled={isUpdating}
+                      >
+                        <Check className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={handleCancel}
+                        disabled={isUpdating}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleEdit(translation)}
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="font-medium">{translation.input_text}</div>
-              <div className="text-muted-foreground">{translation.output_text}</div>
+              {editingId === translation.id ? (
+                <Textarea
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  className="min-h-[60px] resize-none"
+                  disabled={isUpdating}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <div className="text-muted-foreground">{translation.output_text}</div>
+              )}
             </div>
           ))}
         </div>

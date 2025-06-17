@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { TranslationHistory } from '@/components/history'
-import { getTranslationHistory } from '@/services/translation-history'
+import { getTranslationHistory, updateTranslation as updateTranslationApi } from '@/services/translation-history'
 
 export function useTranslationHistory() {
   const [translations, setTranslations] = useState<TranslationHistory[]>([])
@@ -49,6 +49,20 @@ export function useTranslationHistory() {
     setTranslations(prev => [newTranslation, ...prev])
   }, [])
 
+  const updateTranslation = useCallback(async (id: number, outputText: string) => {
+    try {
+      const updatedTranslation = await updateTranslationApi(id, { output_text: outputText })
+      setTranslations(prev => 
+        prev.map(translation => 
+          translation.id === id ? updatedTranslation : translation
+        )
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update translation')
+      throw err
+    }
+  }, [])
+
   // Load history on initial mount
   useEffect(() => {
     fetchHistory(1)
@@ -61,6 +75,7 @@ export function useTranslationHistory() {
     hasMore,
     loadMore,
     fetchHistory,
-    addTranslation
+    addTranslation,
+    updateTranslation
   }
 } 

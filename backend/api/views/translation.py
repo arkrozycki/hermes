@@ -1,12 +1,14 @@
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from ..models import Translation, UserTranslationHistory
 import logging
 import requests
 import os
 from django.utils import timezone
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -195,5 +197,114 @@ def get_translation_history(request):
         logger.error(f"Error fetching translation history: {str(e)}")
         return Response(
             {'error': 'Failed to fetch translation history'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['PATCH', 'OPTIONS'])
+@permission_classes([IsAuthenticated])
+@parser_classes([JSONParser, MultiPartParser, FormParser])
+def edit_translation(request, translation_id):
+    """
+    Edit a specific translation in the user's history and update the translation cache.
+    URL parameter:
+    - translation_id: ID of the translation to edit
+    
+    Request body (all fields optional):
+    - output_text: The corrected translation text
+    - source_language: The source language code
+    - target_language: The target language code
+    """
+    try:
+        logger.debug(f"Attempting to edit translation {translation_id} for user {request.user.id}")
+        logger.debug(f"Request content type: {request.content_type}")
+        
+        # Handle OPTIONS request for CORS
+        if request.method == 'OPTIONS':
+            return Response(status=status.HTTP_200_OK)
+        
+        # Get request data
+        if request.content_type == 'text/plain;charset=UTF-8':
+            try:
+                data = json.loads(request.body.decode('utf-8'))
+            except json.JSONDecodeError:
+                return Response(
+                    {'error': 'Invalid JSON in request body'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            data = request.data
+            
+        logger.debug(f"Request data: {data}")
+        
+        # Get the translation and verify ownership
+        history_entry = UserTranslationHistory.objects.filter(
+            id=translation_id,
+            user=request.user
+        ).first()
+        
+        if not history_entry:
+            logger.warning(f"Translation {translation_id} not found or user {request.user.id} doesn't have permission")
+            return Response(
+                {'error': 'Translation not found or you do not have permission to edit it'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        logger.debug(f"Found history entry: {history_entry.id}")
+        
+        # Find the corresponding cache entry
+        cache_entry = Translation.objects.filter(
+            source_text=history_entry.input_text,
+            target_language=history_entry.target_language,
+            source_language=history_entry.source_language
+        ).first()
+        
+        logger.debug(f"Cache entry found: {bool(cache_entry)}")
+        
+        # Update history entry
+        if 'output_text' in data:
+            history_entry.output_text = data['output_text']
+        if 'source_language' in data:
+            history_entry.source_language = data['source_language']
+        if 'target_language' in data:
+            history_entry.target_language = data['target_language']
+        
+        try:
+            history_entry.save()
+            logger.debug("Successfully saved history entry")
+        except Exception as save_error:
+            logger.error(f"Error saving history entry: {str(save_error)}")
+            raise
+        
+        # Update cache entry if it exists
+        if cache_entry:
+            if 'output_text' in data:
+                cache_entry.translated_text = data['output_text']
+            if 'source_language' in data:
+                cache_entry.source_language = data['source_language']
+            if 'target_language' in data:
+                cache_entry.target_language = data['target_language']
+            
+            try:
+                cache_entry.save()
+                logger.info(f"Updated translation cache for text: {history_entry.input_text[:50]}...")
+            except Exception as cache_error:
+                logger.error(f"Error saving cache entry: {str(cache_error)}")
+                raise
+        
+        return Response({
+            'id': history_entry.id,
+            'source_language': history_entry.source_language,
+            'target_language': history_entry.target_language,
+            'input_text': history_entry.input_text,
+            'output_text': history_entry.output_text,
+            'timestamp': history_entry.timestamp,
+            'was_cached': history_entry.was_cached,
+            'cache_updated': bool(cache_entry)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error editing translation: {str(e)}", exc_info=True)
+        return Response(
+            {'error': 'Failed to edit translation', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) 

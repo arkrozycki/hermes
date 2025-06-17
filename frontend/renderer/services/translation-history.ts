@@ -13,6 +13,20 @@ interface TranslationHistoryResponse {
   pagination: PaginationInfo
 }
 
+interface UpdateTranslationRequest {
+  output_text: string
+}
+
 export async function getTranslationHistory(page: number, limit: number): Promise<TranslationHistoryResponse> {
   return apiClient<TranslationHistoryResponse>(`/translations/history?page=${page}&limit=${limit}`)
+}
+
+export async function updateTranslation(id: number, data: UpdateTranslationRequest): Promise<TranslationHistory> {
+  return apiClient<TranslationHistory>(`/translations/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
 } 
