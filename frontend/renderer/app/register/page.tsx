@@ -27,7 +27,7 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     const formData = new FormData(e.currentTarget)
-    const name = formData.get('name') as string
+    const username = formData.get('username') as string
     const email = formData.get('email') as string
     const password = formData.get('password') as string
     const confirmPassword = formData.get('confirm-password') as string
@@ -39,7 +39,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await authService.register({ name, email, password })
+      await authService.register({ username, email, password })
       router.push('/dashboard') // or wherever you want to redirect after registration
     } catch (error) {
       if (error instanceof Error) {
@@ -53,7 +53,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center">
       <Card className="w-[400px]">
         <CardHeader className="space-y-1">
           <CardTitle className="text-center text-2xl">
@@ -73,12 +73,12 @@ export default function RegisterPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="name"
-                name="name"
+                id="username"
+                name="username"
                 type="text"
-                placeholder="John Doe"
+                placeholder="johndoe"
                 required
                 disabled={isLoading}
               />

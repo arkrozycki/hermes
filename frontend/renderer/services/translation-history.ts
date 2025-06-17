@@ -29,4 +29,10 @@ export async function updateTranslation(id: number, data: UpdateTranslationReque
     },
     body: JSON.stringify(data)
   })
+}
+
+export async function deleteTranslation(id: number): Promise<void> {
+  return apiClient<void>(`/translations/${id}/delete`, {
+    method: 'DELETE'
+  })
 } 

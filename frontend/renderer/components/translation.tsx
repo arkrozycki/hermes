@@ -25,7 +25,8 @@ export function Translation() {
     isLoading: isHistoryLoading,
     loadMore,
     addTranslation,
-    updateTranslation
+    updateTranslation,
+    deleteTranslation
   } = useTranslationHistory()
 
   const handleSourceChange = (value: string) => {
@@ -60,7 +61,7 @@ export function Translation() {
   }, [translatedText, isLoading, error, addTranslation, sourceLanguage, targetLanguage, text])
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4">
       <LanguageSelector
         sourceLanguage={sourceLanguage}
         targetLanguage={targetLanguage}
@@ -85,12 +86,11 @@ export function Translation() {
           />
         </div>
         <div className="relative">
-          <Textarea
-            placeholder="Translation will appear here..."
-            value={translatedText}
-            readOnly
-            className="max-h-[40px] min-h-[40px] resize-none"
-          />
+          <div
+            className="min-h-[40px] w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
+          >
+            {translatedText || ''}
+          </div>
         </div>
       </div>
       <History
@@ -99,6 +99,7 @@ export function Translation() {
         hasMore={hasMore}
         isLoading={isHistoryLoading}
         onUpdateTranslation={updateTranslation}
+        onDeleteTranslation={deleteTranslation}
       />
     </div>
   )

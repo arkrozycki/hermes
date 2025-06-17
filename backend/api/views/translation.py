@@ -307,4 +307,62 @@ def edit_translation(request, translation_id):
         return Response(
             {'error': 'Failed to edit translation', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_translation(request, translation_id):
+    """
+    Delete a specific translation from the user's history and optionally from the cache.
+    URL parameter:
+    - translation_id: ID of the translation to delete
+    
+    Query parameters:
+    - delete_from_cache: Boolean (default: False) - Whether to also delete from the translation cache
+    """
+    try:
+        logger.debug(f"Attempting to delete translation {translation_id} for user {request.user.id}")
+        
+        # Get the translation and verify ownership
+        history_entry = UserTranslationHistory.objects.filter(
+            id=translation_id,
+            user=request.user
+        ).first()
+        
+        if not history_entry:
+            logger.warning(f"Translation {translation_id} not found or user {request.user.id} doesn't have permission")
+            return Response(
+                {'error': 'Translation not found or you do not have permission to delete it'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Check if we should delete from cache
+        delete_from_cache = request.query_params.get('delete_from_cache', 'false').lower() == 'true'
+        
+        if delete_from_cache:
+            # Find and delete the corresponding cache entry
+            cache_entry = Translation.objects.filter(
+                source_text=history_entry.input_text,
+                target_language=history_entry.target_language,
+                source_language=history_entry.source_language
+            ).first()
+            
+            if cache_entry:
+                cache_entry.delete()
+                logger.info(f"Deleted translation from cache: {history_entry.input_text[:50]}...")
+        
+        # Delete the history entry
+        history_entry.delete()
+        logger.info(f"Deleted translation history entry {translation_id}")
+        
+        return Response({
+            'message': 'Translation deleted successfully',
+            'deleted_from_cache': delete_from_cache
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting translation: {str(e)}", exc_info=True)
+        return Response(
+            {'error': 'Failed to delete translation', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) 

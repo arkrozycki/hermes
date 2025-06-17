@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, Edit2, Check, X } from 'lucide-react'
+import { ChevronDown, Edit2, Check, X, Trash2 } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/hooks/use-toast'
 
 export interface TranslationHistory {
   id: number
@@ -20,12 +21,15 @@ interface HistoryProps {
   hasMore: boolean
   isLoading: boolean
   onUpdateTranslation: (id: number, outputText: string) => Promise<void>
+  onDeleteTranslation: (id: number) => Promise<void>
 }
 
-export function History({ translations, onLoadMore, hasMore, isLoading, onUpdateTranslation }: HistoryProps) {
+export function History({ translations, onLoadMore, hasMore, isLoading, onUpdateTranslation, onDeleteTranslation }: HistoryProps) {
   const [editingId, setEditingId] = React.useState<number | null>(null)
   const [editText, setEditText] = React.useState('')
   const [isUpdating, setIsUpdating] = React.useState(false)
+  const [isDeleting, setIsDeleting] = React.useState<number | null>(null)
+  const { toast } = useToast()
 
   const handleEdit = (translation: TranslationHistory) => {
     setEditingId(translation.id)
@@ -49,6 +53,25 @@ export function History({ translations, onLoadMore, hasMore, isLoading, onUpdate
   const handleCancel = () => {
     setEditingId(null)
     setEditText('')
+  }
+
+  const handleDelete = async (id: number) => {
+    try {
+      setIsDeleting(id)
+      await onDeleteTranslation(id)
+      toast({
+        title: 'Success',
+        description: 'Translation deleted successfully'
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete translation',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsDeleting(null)
+    }
   }
 
   return (
@@ -95,14 +118,25 @@ export function History({ translations, onLoadMore, hasMore, isLoading, onUpdate
                       </Button>
                     </div>
                   ) : (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleEdit(translation)}
-                    >
-                      <Edit2 className="h-3 w-3" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleEdit(translation)}
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(translation.id)}
+                        disabled={isDeleting === translation.id}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>

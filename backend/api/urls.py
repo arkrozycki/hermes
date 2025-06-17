@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import MyTokenObtainPairView, set_api_key, example_view, register
-from .views.translation import translate_text, get_translation_history, edit_translation
+from .views.translation import translate_text, get_translation_history, edit_translation, delete_translation
 from rest_framework_simplejwt.views import TokenRefreshView
 import logging
 
@@ -16,6 +16,7 @@ urlpatterns = [
     path('translate', translate_text, name='translate_text'),  # POST: text, target_language, [source_language]
     path('translations/history', get_translation_history, name='translation_history'),  # GET: page, limit
     path('translations/<int:translation_id>', edit_translation, name='edit_translation'),  # PATCH: output_text, source_language, target_language
+    path('translations/<int:translation_id>/delete', delete_translation, name='delete_translation'),  # DELETE: [delete_from_cache]
 ]
 
 # Debug logging

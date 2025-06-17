@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { TranslationHistory } from '@/components/history'
-import { getTranslationHistory, updateTranslation as updateTranslationApi } from '@/services/translation-history'
+import { getTranslationHistory, updateTranslation as updateTranslationApi, deleteTranslation as deleteTranslationApi } from '@/services/translation-history'
 
 export function useTranslationHistory() {
   const [translations, setTranslations] = useState<TranslationHistory[]>([])
@@ -63,6 +63,16 @@ export function useTranslationHistory() {
     }
   }, [])
 
+  const deleteTranslation = useCallback(async (id: number) => {
+    try {
+      await deleteTranslationApi(id)
+      setTranslations(prev => prev.filter(translation => translation.id !== id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete translation')
+      throw err
+    }
+  }, [])
+
   // Load history on initial mount
   useEffect(() => {
     fetchHistory(1)
@@ -76,6 +86,7 @@ export function useTranslationHistory() {
     loadMore,
     fetchHistory,
     addTranslation,
-    updateTranslation
+    updateTranslation,
+    deleteTranslation
   }
 } 
