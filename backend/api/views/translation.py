@@ -133,4 +133,67 @@ def translate_text(request):
         return Response(
             {'error': 'Translation failed', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_translation_history(request):
+    """
+    Get user's translation history with pagination.
+    Query parameters:
+    - page: Page number (default: 1)
+    - limit: Number of items per page (default: 10)
+    """
+    try:
+        page = int(request.query_params.get('page', 1))
+        limit = int(request.query_params.get('limit', 10))
+        
+        if page < 1 or limit < 1:
+            return Response(
+                {'error': 'Page and limit must be positive integers'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Calculate offset
+        offset = (page - 1) * limit
+        
+        # Get translations for the current user
+        translations = UserTranslationHistory.objects.filter(
+            user=request.user
+        ).order_by('-timestamp')[offset:offset + limit]
+        
+        # Get total count for pagination info
+        total_count = UserTranslationHistory.objects.filter(user=request.user).count()
+        
+        # Prepare response data
+        history_data = [{
+            'id': t.id,
+            'source_language': t.source_language,
+            'target_language': t.target_language,
+            'input_text': t.input_text,
+            'output_text': t.output_text,
+            'timestamp': t.timestamp,
+            'was_cached': t.was_cached
+        } for t in translations]
+        
+        return Response({
+            'translations': history_data,
+            'pagination': {
+                'current_page': page,
+                'total_pages': (total_count + limit - 1) // limit,
+                'total_items': total_count,
+                'items_per_page': limit
+            }
+        })
+        
+    except ValueError:
+        return Response(
+            {'error': 'Invalid page or limit parameter'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        logger.error(f"Error fetching translation history: {str(e)}")
+        return Response(
+            {'error': 'Failed to fetch translation history'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) 

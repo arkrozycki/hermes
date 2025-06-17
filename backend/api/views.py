@@ -9,6 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .serializers import UserRegistrationSerializer
 from .models import Translation, UserTranslationHistory
+from django.core.paginator import Paginator
 import logging
 import requests
 import os
@@ -230,3 +231,62 @@ class MyTokenObtainPairView(TokenObtainPairView):
         logger.debug(f"Login response data: {response.data}")
         logger.debug("=== End Login Attempt ===")
         return response
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_translation_history(request):
+    """
+    Get user's translation history with pagination.
+    Query parameters:
+    - page: Page number (default: 1)
+    - limit: Items per page (default: 10)
+    """
+    try:
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit', 10))
+        
+        # Validate pagination parameters
+        if page < 1 or limit < 1:
+            return Response(
+                {'error': 'Page and limit must be positive integers'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get user's translation history
+        history = UserTranslationHistory.objects.filter(user=request.user)
+        
+        # Paginate the results
+        paginator = Paginator(history, limit)
+        page_obj = paginator.get_page(page)
+        
+        # Prepare the response data
+        history_data = [{
+            'id': item.id,
+            'source_language': item.source_language,
+            'target_language': item.target_language,
+            'input_text': item.input_text,
+            'output_text': item.output_text,
+            'timestamp': item.timestamp,
+            'was_cached': item.was_cached
+        } for item in page_obj]
+        
+        return Response({
+            'results': history_data,
+            'total_pages': paginator.num_pages,
+            'current_page': page,
+            'total_items': paginator.count,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous()
+        })
+        
+    except ValueError:
+        return Response(
+            {'error': 'Invalid page or limit parameter'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        logger.error(f"Error fetching translation history: {str(e)}")
+        return Response(
+            {'error': 'Failed to fetch translation history'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import MyTokenObtainPairView, set_api_key, example_view, register, translate_text
+from .views import MyTokenObtainPairView, set_api_key, example_view, register
+from .views.translation import translate_text, get_translation_history
 from rest_framework_simplejwt.views import TokenRefreshView
 import logging
 
@@ -13,6 +14,7 @@ urlpatterns = [
     path('set-api-key', set_api_key, name='set_api_key'),  # POST: api_key
     path('example', example_view, name='example_view'),  # GET
     path('translate', translate_text, name='translate_text'),  # POST: text, target_language, [source_language]
+    path('translations/history', get_translation_history, name='translation_history'),  # GET: page, limit
 ]
 
 # Debug logging
