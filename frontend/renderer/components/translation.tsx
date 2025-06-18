@@ -4,7 +4,7 @@ import { useTranslation } from '@/hooks/use-translation'
 import { useTranslationHistory } from '@/hooks/use-translation-history'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { History } from '@/components/history'
-import { LanguageSelector } from '@/components/ui/language-selector'
+import { LanguageSelector } from '@/components/language-selector'
 
 export function Translation() {
   const [sourceLanguage, setSourceLanguage] = React.useState('en')

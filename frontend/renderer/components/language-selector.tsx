@@ -46,6 +46,19 @@ export function LanguageSelector({
   onSwap,
   className
 }: LanguageSelectorProps) {
+  // Handle keyboard shortcut
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+        e.preventDefault()
+        onSwap()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onSwap])
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Select
@@ -71,14 +84,14 @@ export function LanguageSelector({
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={onSwap}
-              className="h-7 w-7 text-muted-foreground opacity-60">
-              <ArrowRightLeft className="h-3 w-3" />
+              className="h-7 text-xs text-muted-foreground opacity-60 hover:opacity-100">
+              ⌘ + /
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Swap languages</p>
+            <p>Swap languages (⌘+/)</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

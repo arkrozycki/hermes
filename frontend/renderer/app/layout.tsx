@@ -3,6 +3,7 @@ import '../styles/globals.css'
 import { cn } from '@/lib/utils'
 import { Metadata } from 'next'
 import ThemeProvider from '@/components/providers/theme-provider'
+import { SettingsProvider } from '@/hooks/use-settings'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -25,13 +26,15 @@ export default function RootLayout({
       suppressHydrationWarning>
       <body
         className={cn('min-h-screen font-sans antialiased', fontSans.variable)}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+        <SettingsProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange>
+            {children}
+          </ThemeProvider>
+        </SettingsProvider>
       </body>
     </html>
   )

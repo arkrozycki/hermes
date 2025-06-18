@@ -22,11 +22,13 @@ def translate_text(request):
     - target_language: The target language code (e.g., 'es', 'fr', 'de')
     Optional fields:
     - source_language: The source language code (if known)
+    - save_to_db: Boolean flag to save translation to database (default: True)
     """
     try:
         text = request.data.get('text')
         target_language = request.data.get('target_language')
         source_language = request.data.get('source_language')
+        save_to_db = request.data.get('save_to_db', True)
         api_key = os.getenv('GOOGLE_TRANSLATE_API_KEY')
 
         if not text or not target_language:
@@ -56,19 +58,21 @@ def translate_text(request):
             ).first()
 
         if cached_translation:
-            # Update usage stats
-            cached_translation.usage_count += 1
-            cached_translation.last_accessed = timezone.now()
-            cached_translation.save()
-            # Record history with new model fields
-            UserTranslationHistory.objects.create(
-                user=request.user,
-                source_language=cached_translation.source_language,
-                target_language=cached_translation.target_language,
-                input_text=cached_translation.source_text,
-                output_text=cached_translation.translated_text,
-                was_cached=True
-            )
+            # Update usage stats only if we're saving to db
+            if save_to_db:
+                cached_translation.usage_count += 1
+                cached_translation.last_accessed = timezone.now()
+                cached_translation.save()
+                # Record history with new model fields
+                UserTranslationHistory.objects.create(
+                    user=request.user,
+                    source_language=cached_translation.source_language,
+                    target_language=cached_translation.target_language,
+                    input_text=cached_translation.source_text,
+                    output_text=cached_translation.translated_text,
+                    was_cached=True
+                )
+            
             logger.info(f"Cache hit for translation: {text[:50]}...")
             return Response({
                 'translated_text': cached_translation.translated_text,
@@ -97,26 +101,28 @@ def translate_text(request):
         translation = result['data']['translations'][0]
         detected_source_language = translation.get('detectedSourceLanguage', source_language)
 
-        # Store in cache
-        try:
-            translation_obj = Translation.objects.create(
-                source_text=text,
-                translated_text=translation['translatedText'],
-                source_language=detected_source_language,
-                target_language=target_language
-            )
-            # Record history with new model fields
-            UserTranslationHistory.objects.create(
-                user=request.user,
-                source_language=detected_source_language,
-                target_language=target_language,
-                input_text=text,
-                output_text=translation['translatedText'],
-                was_cached=False
-            )
-        except Exception as e:
-            logger.warning(f"Failed to cache translation: {str(e)}")
-            # Continue even if caching fails
+        # Store in cache only if we're saving to db
+        if save_to_db:
+            try:
+                translation_obj = Translation.objects.create(
+                    source_text=text,
+                    translated_text=translation['translatedText'],
+                    source_language=detected_source_language,
+                    target_language=target_language
+                )
+                # Record history with new model fields
+                UserTranslationHistory.objects.create(
+                    user=request.user,
+                    source_language=detected_source_language,
+                    target_language=target_language,
+                    input_text=text,
+                    output_text=translation['translatedText'],
+                    was_cached=False
+                )
+            except Exception as e:
+                logger.warning(f"Failed to cache translation: {str(e)}")
+                # Continue even if caching fails
+
         logger.info(f"Cache miss for translation: {text[:50]}...")
         return Response({
             'translated_text': translation['translatedText'],
@@ -124,6 +130,7 @@ def translate_text(request):
             'target_language': target_language,
             'from_cache': False
         })
+
     except requests.exceptions.RequestException as e:
         logger.error(f"Translation API error: {str(e)}")
         return Response(

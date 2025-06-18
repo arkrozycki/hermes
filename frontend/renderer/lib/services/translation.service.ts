@@ -12,7 +12,11 @@ function getCacheKey(text: string, targetLanguage: string): string {
   return `${text}:${targetLanguage}`
 }
 
-export async function translateText(text: string | undefined | null, targetLanguage: string): Promise<string> {
+export async function translateText(
+  text: string | undefined | null, 
+  targetLanguage: string,
+  saveToDb: boolean = true
+): Promise<string> {
   if (!text || typeof text !== 'string' || !text.trim()) return ''
 
   // Check cache first
@@ -27,7 +31,8 @@ export async function translateText(text: string | undefined | null, targetLangu
       method: 'POST',
       body: JSON.stringify({
         text,
-        target_language: targetLanguage
+        target_language: targetLanguage,
+        save_to_db: saveToDb
       }),
       headers: {
         'Content-Type': 'application/json',
