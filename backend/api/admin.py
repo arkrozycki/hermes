@@ -6,16 +6,16 @@ from .models import CustomUser, Translation, UserTranslationHistory
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'is_active', 'date_joined', 'last_login', 'is_staff')
+    list_display = ('username', 'email', 'is_active', 'is_approved', 'date_joined', 'last_login', 'is_staff')
     search_fields = ('username', 'email', 'first_name', 'last_name')
-    list_filter = ('is_active', 'is_staff', 'date_joined', 'last_login')
+    list_filter = ('is_active', 'is_approved', 'is_staff', 'date_joined', 'last_login')
     ordering = ('-date_joined',)
     readonly_fields = ('date_joined', 'last_login')
     
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Permissions', {'fields': ('is_active', 'is_approved', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'rest_framework_simplejwt.token_blacklist',
     'api',
 ]
 
@@ -163,7 +164,7 @@ REST_FRAMEWORK = {
 # JWT Settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Access token expires in 1 hour
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),     # Refresh token expires in 1 day
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),     # Refresh token expires in 5 days
     'ROTATE_REFRESH_TOKENS': True,                   # Get new refresh token with each refresh
     'BLACKLIST_AFTER_ROTATION': True,                # Blacklist old refresh tokens
     'UPDATE_LAST_LOGIN': True,                       # Update last login timestamp
@@ -171,6 +172,9 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,                       # Key used to sign the token
     'AUTH_HEADER_TYPES': ('Bearer',),               # Authorization header type
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
 }
 
 # Logging configuration

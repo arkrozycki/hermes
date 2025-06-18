@@ -59,11 +59,25 @@ export async function apiClient<T>(
     }
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'An error occurred' }))
-      throw new Error(error.message || 'An error occurred')
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: 'An error occurred' };
+      }
+      
+      throw new ApiErrorException(
+        errorData.message || 'An error occurred',
+        response.status,
+        errorData
+      );
     }
 
-    return response.json()
+    const data = await response.json()
+    return {
+      ...data,
+      status: response.status
+    }
   } catch (error) {
     if (error instanceof Error) {
       throw error

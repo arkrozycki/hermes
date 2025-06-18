@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import MyTokenObtainPairView, set_api_key, example_view, register
+from .views import MyTokenObtainPairView, set_api_key, example_view, register, logout
 from .views.translation import translate_text, get_translation_history, edit_translation, delete_translation
 from rest_framework_simplejwt.views import TokenRefreshView
 import logging
@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 # All endpoints expect POST requests unless specified otherwise
 urlpatterns = [
     path('auth/register', register, name='register'),  # POST: email, password
+    path('auth/logout', logout, name='logout'),  # POST: refresh_token
     path('token', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),  # POST: username, password
     path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),  # POST: refresh
     path('set-api-key', set_api_key, name='set_api_key'),  # POST: api_key

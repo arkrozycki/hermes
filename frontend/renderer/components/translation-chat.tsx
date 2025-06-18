@@ -139,15 +139,22 @@ export function TranslationChat() {
       source_language: sourceLanguage,
       target_language: targetLanguage,
       input_text: currentText,
-      output_text: isLoading ? '' : '',
+      output_text: isLoading ? '' : translatedText,
       timestamp: new Date().toISOString(),
       was_cached: false,
       is_loading: isLoading
     };
-  }, [currentText, sourceLanguage, targetLanguage, isLoading, translatedText, translations]);
+  }, [currentText, sourceLanguage, targetLanguage, isLoading, translatedText, translations, settings.saveWords]);
 
   return (
     <Card className="flex h-screen flex-col border-0">
+      {!settings.saveWords && (
+        <Alert className="bg-yellow-50 border-yellow-200">
+          <AlertDescription className="text-yellow-800">
+            Translations will not be saved to history
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="flex-1 overflow-hidden">
         <div className="h-full">
           {detectedSourceLanguage && detectedSourceLanguage !== sourceLanguage && (

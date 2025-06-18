@@ -20,11 +20,13 @@ export default function RegisterPage() {
   const router = useRouter()
   const [error, setError] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
+    setIsSuccess(false)
 
     const formData = new FormData(e.currentTarget)
     const username = formData.get('username') as string
@@ -39,8 +41,13 @@ export default function RegisterPage() {
     }
 
     try {
-      await authService.register({ username, email, password })
-      router.push('/dashboard') // or wherever you want to redirect after registration
+      const response = await authService.register({ username, email, password })
+
+      if (response.status === 201) {
+        setIsSuccess(true)
+      } else {
+        setError('An unexpected response was received')
+      }
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message)
@@ -52,8 +59,32 @@ export default function RegisterPage() {
     }
   }
 
+  if (isSuccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-8 bg-background">
+        <Card className="w-[400px]">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-center text-2xl">
+              Registration Successful
+            </CardTitle>
+            <CardDescription className="text-center">
+              Your account is pending approval. You will be notified once your account is approved.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button
+              onClick={() => router.push('/login')}
+              className="w-full">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center p-8 bg-background">
       <Card className="w-[400px]">
         <CardHeader className="space-y-1">
           <CardTitle className="text-center text-2xl">

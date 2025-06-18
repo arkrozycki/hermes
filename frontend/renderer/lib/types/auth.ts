@@ -16,8 +16,8 @@ export interface RegisterData {
 }
 
 export interface RegisterResponse {
-  token: string
   message: string
+  status: number
 }
 
 export interface LoginResponse {

@@ -61,7 +61,7 @@ class AuthService {
     this.setAuthData(response)
   }
 
-  public async register(data: RegisterData): Promise<void> {
+  public async register(data: RegisterData): Promise<RegisterResponse> {
     const response = await apiClient<RegisterResponse>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -69,13 +69,23 @@ class AuthService {
         'Content-Type': 'application/json',
       },
     })
-    // After registration, we need to login to get the tokens
-    await this.login({ username: data.username, password: data.password })
+    return response
   }
 
   public async logout(): Promise<void> {
     try {
-      await apiClient('/auth/logout', { method: 'POST' })
+      const refreshToken = this.getRefreshToken()
+      if (!refreshToken) {
+        throw new Error('No refresh token available')
+      }
+
+      await apiClient('/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      })
     } catch (error) {
       console.error('Logout error:', error)
     } finally {

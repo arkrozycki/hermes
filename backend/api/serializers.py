@@ -32,12 +32,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         logger.debug(f"Creating user with username: {username}")
         logger.debug(f"Password provided: {validated_data['password']}")
 
-        # Create user with the provided password
+        # Create user with the provided password and set is_approved to False
         user = User.objects.create_user(
             username=username,
             email=email,
             api_key=api_key,
-            password=validated_data['password']  # Use the provided password
+            password=validated_data['password'],
+            is_approved=False  # Set user as unapproved by default
         )
 
         logger.debug(f"User created successfully: {user.username}")
