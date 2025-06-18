@@ -115,7 +115,7 @@ export function History({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col p-2">
       <ScrollArea className="flex-1 rounded-lg border bg-muted/50">
         <div className="flex flex-col gap-4 p-4">
           {hasMore && (

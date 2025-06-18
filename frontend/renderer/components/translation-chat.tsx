@@ -10,7 +10,6 @@ import { Settings } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Card } from '@/components/ui/card'
@@ -25,21 +24,10 @@ const normalizeText = (text: string): string => {
 export function TranslationChat() {
   const [sourceLanguage, setSourceLanguage] = React.useState('en')
   const [targetLanguage, setTargetLanguage] = React.useState('es')
-  const [isTyping, setIsTyping] = React.useState(false)
-  const [currentTranslation, setCurrentTranslation] = React.useState<{
-    text: string;
-    sourceLanguage: string;
-    targetLanguage: string;
-    translatedText: string;
-  } | null>(null)
-  const [pendingTranslation, setPendingTranslation] = React.useState<{
-    text: string;
-    sourceLanguage: string;
-    targetLanguage: string;
-  } | null>(null)
-  const typingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-  const lastAddedTranslationRef = React.useRef<string>('')
+  const [currentText, setCurrentText] = React.useState('')
   const lastProcessedTextRef = React.useRef<string>('')
+  const typingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+  const [isProcessing, setIsProcessing] = React.useState(false)
   
   const { settings } = useSettings()
   
@@ -85,16 +73,9 @@ export function TranslationChat() {
       clearTimeout(typingTimeoutRef.current)
       typingTimeoutRef.current = null
     }
-
+    
     if (normalizedText) {
-      // Show loading indicator immediately when typing
-      setIsTyping(true)
-      setPendingTranslation({
-        text: normalizedText,
-        sourceLanguage,
-        targetLanguage
-      })
-
+      setCurrentText(normalizedText)
       // Only trigger translation if the text has actually changed
       if (normalizedText !== lastProcessedTextRef.current) {
         typingTimeoutRef.current = setTimeout(() => {
@@ -103,11 +84,17 @@ export function TranslationChat() {
         }, 500)
       }
     } else {
-      setIsTyping(false)
+      setCurrentText('')
       lastProcessedTextRef.current = ''
-      setPendingTranslation(null)
     }
-  }, [text, sourceLanguage, targetLanguage, translate])
+
+    // Cleanup timeout on unmount or when text changes
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+    }
+  }, [text, sourceLanguage, targetLanguage, translate, settings.saveWords])
 
   // Handle translation results
   React.useEffect(() => {
@@ -117,19 +104,8 @@ export function TranslationChat() {
       !error &&
       normalizeText(translatedText) !== '' &&
       normalizeText(text) !== '' &&
-      translatedText !== lastAddedTranslationRef.current &&
       normalizeText(text) === lastProcessedTextRef.current // Only process if this matches the last processed text
     ) {
-      lastAddedTranslationRef.current = translatedText
-      
-      // Update current translation
-      setCurrentTranslation({
-        text,
-        sourceLanguage,
-        targetLanguage,
-        translatedText
-      })
-      
       // Only save to history if saveWords is enabled
       if (settings.saveWords) {
         addTranslation({
@@ -139,60 +115,43 @@ export function TranslationChat() {
           output_text: translatedText
         })
       }
-      
-      // Clear loading state
-      setIsTyping(false)
-      setPendingTranslation(null)
     }
   }, [translatedText, isLoading, error, addTranslation, sourceLanguage, targetLanguage, text, settings.saveWords])
 
-  // Reset states when text is cleared
-  React.useEffect(() => {
-    if (!text) {
-      lastAddedTranslationRef.current = ''
-      lastProcessedTextRef.current = ''
-      setIsTyping(false)
-      setPendingTranslation(null)
-      setCurrentTranslation(null)
-    }
-  }, [text])
-
-  // Create a temporary translation for the loading state
-  const loadingTranslation = React.useMemo(() => {
-    if (!pendingTranslation?.text) return null;
+  // Create a temporary translation for the current text
+  const currentTranslation = React.useMemo(() => {
+    if (!currentText) return null;
+    
+    // Don't show current translation if it's already in history
+    const isInHistory = translations.some(t => 
+      normalizeText(t.input_text) === normalizeText(currentText) &&
+      t.source_language === sourceLanguage &&
+      t.target_language === targetLanguage
+    );
+    
+    if (isInHistory) return null;
+    
+    // Only show the card if we're loading or have a translation
+    if (!isLoading && !translatedText) return null;
+    
     return {
-      id: -1, // Temporary ID for loading state
-      source_language: pendingTranslation.sourceLanguage,
-      target_language: pendingTranslation.targetLanguage,
-      input_text: pendingTranslation.text,
-      output_text: '',
+      id: -1, // Temporary ID for current translation
+      source_language: sourceLanguage,
+      target_language: targetLanguage,
+      input_text: currentText,
+      output_text: isLoading ? '' : '',
       timestamp: new Date().toISOString(),
       was_cached: false,
-      is_loading: true
+      is_loading: isLoading
     };
-  }, [pendingTranslation]);
-
-  // Create a translation object for the current translation
-  const currentTranslationObject = React.useMemo(() => {
-    if (!currentTranslation) return null;
-    return {
-      id: -2, // Temporary ID for current translation
-      source_language: currentTranslation.sourceLanguage,
-      target_language: currentTranslation.targetLanguage,
-      input_text: currentTranslation.text,
-      output_text: currentTranslation.translatedText,
-      timestamp: new Date().toISOString(),
-      was_cached: false,
-      is_loading: false
-    };
-  }, [currentTranslation]);
+  }, [currentText, sourceLanguage, targetLanguage, isLoading, translatedText, translations]);
 
   return (
-    <Card className="flex h-[calc(100vh-2rem)] flex-col">
+    <Card className="flex h-screen flex-col border-0">
       <div className="flex-1 overflow-hidden">
-        <div className="h-full p-4">
+        <div className="h-full">
           {detectedSourceLanguage && detectedSourceLanguage !== sourceLanguage && (
-            <Alert className="mb-4">
+            <Alert>
               <AlertDescription>
                 Detected source language: {detectedSourceLanguage}
               </AlertDescription>
@@ -200,8 +159,7 @@ export function TranslationChat() {
           )}
           <History
             translations={[
-              ...(loadingTranslation ? [loadingTranslation] : []),
-              ...(currentTranslationObject ? [currentTranslationObject] : []),
+              ...(currentTranslation ? [currentTranslation] : []),
               ...translations
             ]}
             onLoadMore={loadMore}
@@ -212,16 +170,16 @@ export function TranslationChat() {
           />
         </div>
       </div>
-      <div className="bg-background p-4">
-        <Card className="rounded-lg border shadow-md overflow-hidden">
+      <div className="bg-background">
+        <Card className="border-0 shadow-md overflow-hidden">
           <Textarea
             placeholder="Enter text to translate..."
             value={text}
             onChange={e => setText(e.target.value)}
-            className="min-h-[60px] resize-none border-0 shadow-none focus-visible:ring-0 rounded-none"
+            className="min-h-[60px] resize-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none"
             autoFocus
           />
-          <div className="flex items-center justify-between px-4 py-2 rounded-b-lg">
+          <div className="flex items-center justify-between px-4 py-2 border-0 shadow-none">
             <LanguageSelector
               sourceLanguage={sourceLanguage}
               targetLanguage={targetLanguage}

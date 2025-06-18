@@ -66,7 +66,7 @@ export function useTranslation() {
       loadingTimeoutRef.current = setTimeout(() => {
         setIsLoading(true)
         translate(text, sourceLanguage, targetLanguage, saveToDb)
-      }, 500)
+      }, 100)
     }, 500),
     [translate]
   )

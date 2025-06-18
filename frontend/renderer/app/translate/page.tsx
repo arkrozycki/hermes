@@ -16,7 +16,7 @@ export default function TranslatePage() {
   }, [router])
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="h-full w-full">
       <TranslationChat />
     </div>
   )
