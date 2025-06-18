@@ -1,6 +1,6 @@
-appId: com.example.nextron
-productName: My Nextron App
-copyright: Copyright © 2024 Maxime Premont
+appId: com.example.hermes
+productName: Hermes
+copyright: Copyright © 2025 Ark Rozycki
 directories:
   output: dist
   buildResources: resources
@@ -10,9 +10,14 @@ files:
       - package.json
       - app
 publish: null
+mac:
+  icon: renderer/public/icons/desktop/macos/icon.icns
+win:
+  icon: renderer/public/icons/desktop/windows/icon.ico
 linux:
   target:
     - deb
     - rpm
     - snap
   category: Utility
+  icon: renderer/public/icons/desktop/linux/icon-512x512.png

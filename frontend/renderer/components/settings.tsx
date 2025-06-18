@@ -9,6 +9,7 @@ import { useSettings } from '@/hooks/use-settings'
 import { authService } from '@/lib/services/auth.service'
 import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
+import { ThemeToggle } from './theme-toggle'
 
 export function Settings() {
   const { settings, updateSettings } = useSettings()
@@ -34,6 +35,13 @@ export function Settings() {
           checked={settings.saveWords}
           onCheckedChange={(checked) => updateSettings({ saveWords: checked })}
         />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">
+          Theme
+        </Label>
+        <ThemeToggle />
       </div>
 
       <div className="">
