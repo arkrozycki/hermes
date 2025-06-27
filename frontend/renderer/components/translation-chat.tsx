@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Card } from '@/components/ui/card'
 import { Settings as SettingsComponent } from '@/components/settings'
+import { Flashcards } from '@/components/flashcards'
 import { useSettings } from '@/hooks/use-settings'
 
 // Helper function to normalize text for comparison
@@ -24,6 +25,8 @@ const normalizeText = (text: string): string => {
 export function TranslationChat() {
   const [sourceLanguage, setSourceLanguage] = React.useState('en')
   const [targetLanguage, setTargetLanguage] = React.useState('es')
+  const [isFlashcardsOpen, setIsFlashcardsOpen] = React.useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
   const lastProcessedTextRef = React.useRef<string>('')
   const typingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
   
@@ -60,6 +63,15 @@ export function TranslationChat() {
   const handleSwap = () => {
     setSourceLanguage(targetLanguage)
     setTargetLanguage(sourceLanguage)
+  }
+
+  const handleFlashcardsClick = () => {
+    setIsSettingsOpen(false) // Close settings dropdown
+    setIsFlashcardsOpen(true)
+  }
+
+  const handleFlashcardsClose = () => {
+    setIsFlashcardsOpen(false)
   }
 
   // Handle text changes and trigger translation
@@ -145,67 +157,80 @@ export function TranslationChat() {
   }, [text, sourceLanguage, targetLanguage, isLoading, translatedText, translations]);
 
   return (
-    <Card className="flex h-screen flex-col border-0">
-      {!settings.saveWords && (
-        <Alert className="bg-yellow-50 border-yellow-200">
-          <AlertDescription className="text-yellow-800">
-            Translations will not be saved to history
-          </AlertDescription>
-        </Alert>
-      )}
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full">
-          {detectedSourceLanguage && detectedSourceLanguage !== sourceLanguage && (
-            <Alert>
-              <AlertDescription>
-                Detected source language: {detectedSourceLanguage}
-              </AlertDescription>
-            </Alert>
-          )}
-          <History
-            translations={[
-              ...(currentTranslation ? [currentTranslation] : []),
-              ...translations
-            ]}
-            onLoadMore={loadMore}
-            hasMore={hasMore}
-            isLoading={isHistoryLoading}
-            onUpdateTranslation={updateTranslation}
-            onDeleteTranslation={deleteTranslation}
-          />
-        </div>
-      </div>
-      <div className="bg-background">
-        <Card className="border-0 shadow-md overflow-hidden">
-          <Textarea
-            placeholder="Enter text to translate..."
-            value={text}
-            onChange={e => setText(e.target.value)}
-            className="min-h-[60px] resize-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none"
-            autoFocus
-          />
-          <div className="flex items-center justify-between px-4 py-2 border-0 shadow-none">
-            <LanguageSelector
-              sourceLanguage={sourceLanguage}
-              targetLanguage={targetLanguage}
-              onSourceChange={handleSourceChange}
-              onTargetChange={handleTargetChange}
-              onSwap={handleSwap}
-              className="border-0 shadow-none"
+    <>
+      <Card className="flex h-screen flex-col border-0">
+        {!settings.saveWords && (
+          <Alert className="bg-yellow-50 border-yellow-200">
+            <AlertDescription className="text-yellow-800">
+              Translations will not be saved to history
+            </AlertDescription>
+          </Alert>
+        )}
+        <div className="flex-1 overflow-hidden">
+          <div className="h-full">
+            {detectedSourceLanguage && detectedSourceLanguage !== sourceLanguage && (
+              <Alert>
+                <AlertDescription>
+                  Detected source language: {detectedSourceLanguage}
+                </AlertDescription>
+              </Alert>
+            )}
+            <History
+              translations={[
+                ...(currentTranslation ? [currentTranslation] : []),
+                ...translations
+              ]}
+              onLoadMore={loadMore}
+              hasMore={hasMore}
+              isLoading={isHistoryLoading}
+              onUpdateTranslation={updateTranslation}
+              onDeleteTranslation={deleteTranslation}
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="border-0">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <SettingsComponent />
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
-        </Card>
-      </div>
-    </Card>
+        </div>
+        <div className="bg-background">
+          <Card className="border-0 shadow-md overflow-hidden">
+            <Textarea
+              placeholder="Enter text to translate..."
+              value={text}
+              onChange={e => setText(e.target.value)}
+              className="min-h-[60px] resize-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none"
+              autoFocus
+            />
+            <div className="flex items-center justify-between px-4 py-2 border-0 shadow-none">
+              <LanguageSelector
+                sourceLanguage={sourceLanguage}
+                targetLanguage={targetLanguage}
+                onSourceChange={handleSourceChange}
+                onTargetChange={handleTargetChange}
+                onSwap={handleSwap}
+                className="border-0 shadow-none"
+              />
+              <DropdownMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="border-0">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <SettingsComponent onFlashcardsClick={handleFlashcardsClick} />
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </Card>
+        </div>
+      </Card>
+      
+      <Flashcards
+        isOpen={isFlashcardsOpen}
+        onClose={handleFlashcardsClose}
+        sourceLang={sourceLanguage}
+        targetLang={targetLanguage}
+        sourceDuration={1000}      // 1 second for source word
+        hiddenDuration={2000}      // 2 seconds hidden
+        translatedDuration={2000}  // 2 seconds for translated word
+        pauseDuration={2000}       // 2 seconds pause before next word
+      />
+    </>
   )
 } 

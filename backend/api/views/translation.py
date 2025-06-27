@@ -9,6 +9,7 @@ import requests
 import os
 from django.utils import timezone
 import json
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -371,5 +372,115 @@ def delete_translation(request, translation_id):
         logger.error(f"Error deleting translation: {str(e)}", exc_info=True)
         return Response(
             {'error': 'Failed to delete translation', 'details': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_flashcards(request):
+    """
+    Get randomized translations for flashcard practice.
+    Required fields in request:
+    - source_lang: The source language code (e.g., 'en', 'es')
+    - target_lang: The target language code (e.g., 'es', 'fr', 'de')
+    - limit: Number of flashcards to return (max 100)
+    """
+    try:
+        source_lang = request.data.get('source_lang')
+        target_lang = request.data.get('target_lang')
+        limit = request.data.get('limit', 10)
+
+        if not source_lang or not target_lang:
+            return Response(
+                {'error': 'Both source_lang and target_lang are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate limit
+        try:
+            limit = int(limit)
+            if limit < 1:
+                raise ValueError("Limit must be positive")
+            if limit > 100:
+                limit = 100  # Cap at 100 for performance
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'Limit must be a positive integer (max 100)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get all translations from database that match the language pair
+        # First get from Translation model (cached translations)
+        all_translations = list(Translation.objects.filter(
+            source_language=source_lang,
+            target_language=target_lang
+        ))
+
+        # Get all from user history as well
+        all_history = list(UserTranslationHistory.objects.filter(
+            source_language=source_lang,
+            target_language=target_lang
+        ))
+
+        # Combine both sources and remove duplicates
+        translation_pairs = {}  # Use dict to automatically handle duplicates by key
+        
+        # Add cached translations
+        for translation in all_translations:
+            key = (translation.source_text, translation.translated_text)
+            if key not in translation_pairs:
+                translation_pairs[key] = {
+                    'id': translation.id,
+                    'source_text': translation.source_text,
+                    'translated_text': translation.translated_text,
+                    'source_language': translation.source_language,
+                    'target_language': translation.target_language,
+                    'source': 'cache'
+                }
+        
+        # Add history translations (only if not already present)
+        for history in all_history:
+            key = (history.input_text, history.output_text)
+            if key not in translation_pairs:
+                translation_pairs[key] = {
+                    'id': f"history_{history.id}",
+                    'source_text': history.input_text,
+                    'translated_text': history.output_text,
+                    'source_language': history.source_language,
+                    'target_language': history.target_language,
+                    'source': 'history'
+                }
+
+        # Convert to list and randomize
+        all_unique_translations = list(translation_pairs.values())
+        random.shuffle(all_unique_translations)
+        
+        # Take only the requested limit
+        translations = all_unique_translations[:limit]
+
+        # Prepare response data
+        flashcards = []
+        for translation in translations:
+            flashcard = {
+                'id': translation['id'],
+                'source_text': translation['source_text'],
+                'translated_text': translation['translated_text'],
+                'source_language': translation['source_language'],
+                'target_language': translation['target_language']
+            }
+            flashcards.append(flashcard)
+
+        return Response({
+            'flashcards': flashcards,
+            'count': len(flashcards),
+            'source_language': source_lang,
+            'target_language': target_lang,
+            'requested_limit': limit
+        })
+
+    except Exception as e:
+        logger.error(f"Flashcards error: {str(e)}")
+        return Response(
+            {'error': 'Failed to retrieve flashcards', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) 
