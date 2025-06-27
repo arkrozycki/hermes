@@ -24,10 +24,8 @@ const normalizeText = (text: string): string => {
 export function TranslationChat() {
   const [sourceLanguage, setSourceLanguage] = React.useState('en')
   const [targetLanguage, setTargetLanguage] = React.useState('es')
-  const [currentText, setCurrentText] = React.useState('')
   const lastProcessedTextRef = React.useRef<string>('')
   const typingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-  const [isProcessing, setIsProcessing] = React.useState(false)
   
   const { settings } = useSettings()
   
@@ -75,7 +73,6 @@ export function TranslationChat() {
     }
     
     if (normalizedText) {
-      setCurrentText(normalizedText)
       // Only trigger translation if the text has actually changed
       if (normalizedText !== lastProcessedTextRef.current) {
         typingTimeoutRef.current = setTimeout(() => {
@@ -84,7 +81,6 @@ export function TranslationChat() {
         }, 500)
       }
     } else {
-      setCurrentText('')
       lastProcessedTextRef.current = ''
     }
 
@@ -120,31 +116,33 @@ export function TranslationChat() {
 
   // Create a temporary translation for the current text
   const currentTranslation = React.useMemo(() => {
-    if (!currentText) return null;
+    const normalizedInputText = normalizeText(text);
+    if (!normalizedInputText) return null;
     
     // Don't show current translation if it's already in history
     const isInHistory = translations.some(t => 
-      normalizeText(t.input_text) === normalizeText(currentText) &&
+      normalizeText(t.input_text) === normalizedInputText &&
       t.source_language === sourceLanguage &&
       t.target_language === targetLanguage
     );
     
     if (isInHistory) return null;
     
-    // Only show the card if we're loading or have a translation
-    if (!isLoading && !translatedText) return null;
+    // Only show temporary translation when we're actively loading
+    // This prevents showing stale translations for new input text
+    if (!isLoading) return null;
     
     return {
-      id: -1, // Temporary ID for current translation
+      id: -Date.now(), // Negative timestamp for temporary ID to avoid conflicts
       source_language: sourceLanguage,
       target_language: targetLanguage,
-      input_text: currentText,
-      output_text: isLoading ? '' : translatedText,
+      input_text: text,
+      output_text: translatedText || '',
       timestamp: new Date().toISOString(),
       was_cached: false,
       is_loading: isLoading
     };
-  }, [currentText, sourceLanguage, targetLanguage, isLoading, translatedText, translations, settings.saveWords]);
+  }, [text, sourceLanguage, targetLanguage, isLoading, translatedText, translations]);
 
   return (
     <Card className="flex h-screen flex-col border-0">

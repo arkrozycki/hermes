@@ -4,8 +4,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue
+  SelectTrigger
 } from '@/components/ui/select'
 import {
   Tooltip,
@@ -13,7 +12,6 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-import { ArrowLeftRight, ArrowRightLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface LanguageSelectorProps {

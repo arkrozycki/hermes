@@ -1,10 +1,10 @@
 {
-  "name": "boilerplate-nextron-shadcn",
-  "description": "Nextron project boilerplate ( Next.Js + Electron ) in TypeScript, with TailwindCSS + Shadcn/ui, with web and desktop build",
+  "name": "hermes",
+  "description": "Hermes Translation App - AI-powered translation with beautiful UI",
   "version": "1.2.0",
-  "author": "Maxime Premont <maxime.premont@gmail.com>",
+  "author": "Ark <ark@beargrass.io>",
   "main": "app/background.js",
-  "license": "MIT",
+  "license": "",
   "repository": {
     "type": "git",
     "url": "https://github.com/MaximePremont/boilerplate-nextron-shadcn"
@@ -21,8 +21,8 @@
     "app-router"
   ],
   "bugs": {
-    "url": "https://github.com/MaximePremont/boilerplate-nextron-shadcn/issues/new?assignees=&labels=bug&projects=&template=2-bug-report.yml&title=Bug%3A+",
-    "email": "maxime.premont@gmail.com"
+    "url": "",
+    "email": "ark@beargrass.io"
   },
   "scripts": {
     "format": "next lint renderer --fix && prettier --write .",

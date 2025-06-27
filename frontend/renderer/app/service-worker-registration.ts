@@ -3,7 +3,7 @@ export function registerServiceWorker() {
     window.addEventListener('load', () => {
       navigator.serviceWorker
         .register('/service-worker.js')
-        .then((registration) => {
+        .then(() => {
           console.log('ServiceWorker registration successful');
         })
         .catch((err) => {

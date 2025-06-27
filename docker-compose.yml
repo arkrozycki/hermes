@@ -38,7 +38,7 @@ services:
       - POSTGRES_USER=hermes
       - POSTGRES_PASSWORD=hermes
     ports:
-      - "5432:5432"
+      - "54321:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U hermes -d hermes"]
       interval: 5s

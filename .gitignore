@@ -1,5 +1,6 @@
 .env
 frontend/renderer/.next
+frontend/app/_next
 # Dependencies
 node_modules
 **/node_modules

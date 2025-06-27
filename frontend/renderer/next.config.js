@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
-  distDir: process.env.NODE_ENV === 'production' ? '../dist' : '.next',
+  distDir: process.env.NODE_ENV === 'production' ? '../app' : '.next',
   images: {
     unoptimized: true
   }

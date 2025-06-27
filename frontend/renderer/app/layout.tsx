@@ -1,3 +1,4 @@
+import React from 'react'
 import { Inter as FontSans } from 'next/font/google'
 import '../styles/globals.css'
 import { cn } from '@/lib/utils'
@@ -27,12 +28,19 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icons/web/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/icons/web/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icons/web/favicon-48x48.png', sizes: '48x48', type: 'image/png' }
+      { url: '/icons/light/web/favicon.ico', sizes: 'any', media: '(prefers-color-scheme: dark)' },
+      { url: '/icons/dark/web/favicon.ico', sizes: 'any', media: '(prefers-color-scheme: light)' },
+      { url: '/icons/light/web/favicon-16x16.png', sizes: '16x16', type: 'image/png', media: '(prefers-color-scheme: light)' },
+      { url: '/icons/dark/web/favicon-16x16.png', sizes: '16x16', type: 'image/png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icons/light/web/favicon-32x32.png', sizes: '32x32', type: 'image/png', media: '(prefers-color-scheme: light)' },
+      { url: '/icons/dark/web/favicon-32x32.png', sizes: '32x32', type: 'image/png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icons/light/web/favicon-48x48.png', sizes: '48x48', type: 'image/png', media: '(prefers-color-scheme: light)' },
+      { url: '/icons/dark/web/favicon-48x48.png', sizes: '48x48', type: 'image/png', media: '(prefers-color-scheme: dark)' }
     ],
-    apple: '/icons/web/apple-touch-icon.png'
+    apple: [
+      { url: '/icons/light/web/apple-touch-icon.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icons/dark/web/apple-touch-icon.png', media: '(prefers-color-scheme: dark)' }
+    ]
   }
 }
 
@@ -55,11 +63,16 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/icons/web/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icons/web/favicon-16x16.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/web/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="48x48" href="/icons/web/favicon-48x48.png" />
+        <link rel="icon" href="/icons/light/web/favicon.ico" media="(prefers-color-scheme: light)" />
+        <link rel="icon" href="/icons/dark/web/favicon.ico" media="(prefers-color-scheme: dark)" />
+        <link rel="apple-touch-icon" href="/icons/light/web/apple-touch-icon.png" media="(prefers-color-scheme: light)" />
+        <link rel="apple-touch-icon" href="/icons/dark/web/apple-touch-icon.png" media="(prefers-color-scheme: dark)" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icons/light/web/favicon-16x16.png" media="(prefers-color-scheme: light)" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icons/dark/web/favicon-16x16.png" media="(prefers-color-scheme: dark)" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/light/web/favicon-32x32.png" media="(prefers-color-scheme: light)" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/dark/web/favicon-32x32.png" media="(prefers-color-scheme: dark)" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/icons/light/web/favicon-48x48.png" media="(prefers-color-scheme: light)" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/icons/dark/web/favicon-48x48.png" media="(prefers-color-scheme: dark)" />
       </head>
       <body
         className={cn('min-h-screen font-sans antialiased m-0 p-0', fontSans.variable)}>

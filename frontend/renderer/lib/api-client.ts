@@ -7,7 +7,7 @@ export class ApiErrorException extends Error {
   constructor(
     message: string,
     public status?: number,
-    public data?: any
+    public data?: unknown
   ) {
     super(message)
     this.name = 'ApiErrorException'
@@ -52,7 +52,7 @@ export async function apiClient<T>(
         await authService.refreshAccessToken()
         // Retry the original request with the new token
         return apiClient<T>(endpoint, options)
-      } catch (refreshError) {
+      } catch {
         await authService.logout()
         throw new Error('Session expired. Please log in again.')
       }

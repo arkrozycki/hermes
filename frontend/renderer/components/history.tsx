@@ -4,13 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Edit2, Check, X, Trash2 } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
-import { cn, timeAgo } from '@/lib/utils'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { timeAgo } from '@/lib/utils'
 
 export interface TranslationHistory {
   id: number
@@ -32,17 +26,6 @@ interface HistoryProps {
   onDeleteTranslation: (id: number) => Promise<void>
 }
 
-function TypingIndicator() {
-  return (
-    <div className="flex items-center gap-1 px-2 py-1 min-h-[60px]">
-      <div className="flex gap-1">
-        <div className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
-        <div className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
-        <div className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" />
-      </div>
-    </div>
-  )
-}
 
 export function History({ 
   translations, 
@@ -59,16 +42,22 @@ export function History({
   const { toast } = useToast()
   const bottomRef = React.useRef<HTMLDivElement>(null)
   const prevTranslationsLengthRef = React.useRef(translations.length)
+  const prevFirstTranslationIdRef = React.useRef<number | null>(translations[0]?.id || null)
 
-  // Scroll to bottom on new messages, initial load, or when typing indicator appears
+  // Scroll to bottom only on new messages (not when loading previous history)
   React.useEffect(() => {
-    const isNewMessage = translations.length > prevTranslationsLengthRef.current
+    const currentFirstId = translations[0]?.id || null
+    const isNewMessage = translations.length > prevTranslationsLengthRef.current && 
+                         currentFirstId !== prevFirstTranslationIdRef.current
+    
     if (isNewMessage || translations.length === 1) {
       requestAnimationFrame(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
       })
     }
+    
     prevTranslationsLengthRef.current = translations.length
+    prevFirstTranslationIdRef.current = currentFirstId
   }, [translations])
 
   const handleEdit = (translation: TranslationHistory) => {
@@ -83,8 +72,8 @@ export function History({
       setIsUpdating(true)
       await onUpdateTranslation(editingId, editText)
       setEditingId(null)
-    } catch (error) {
-      console.error('Failed to update translation:', error)
+    } catch (err) {
+      console.error('Failed to update translation:', err)
     } finally {
       setIsUpdating(false)
     }
@@ -103,7 +92,7 @@ export function History({
         title: 'Success',
         description: 'Translation deleted successfully'
       })
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to delete translation',

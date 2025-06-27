@@ -47,12 +47,13 @@ export default function LoginPage() {
     } catch (error) {
       console.log('Login error:', error)
       if (error instanceof ApiErrorException) {
-        if (error.data?.non_field_errors?.[0]) {
-          setLoginError(error.data.non_field_errors[0])
-        } else if (error.data?.detail) {
-          setLoginError(error.data.detail)
-        } else if (error.data?.message) {
-          setLoginError(error.data.message)
+        const errorData = error.data as Record<string, unknown>
+        if (errorData?.non_field_errors && Array.isArray(errorData.non_field_errors) && errorData.non_field_errors[0]) {
+          setLoginError(String(errorData.non_field_errors[0]))
+        } else if (errorData?.detail) {
+          setLoginError(String(errorData.detail))
+        } else if (errorData?.message) {
+          setLoginError(String(errorData.message))
         } else {
           setLoginError(error.message)
         }

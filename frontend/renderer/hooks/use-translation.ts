@@ -14,7 +14,7 @@ export function useTranslation() {
   const [error, setError] = useState<TranslationError | null>(null)
   const [detectedSourceLanguage, setDetectedSourceLanguage] = useState<string | null>(null)
   const requestIdRef = useRef(0)
-  const loadingTimeoutRef = useRef<NodeJS.Timeout>()
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const translate = useCallback(async (
     text: string, 
@@ -62,11 +62,11 @@ export function useTranslation() {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current)
       }
-      // Set loading state after debounce delay
-      loadingTimeoutRef.current = setTimeout(() => {
-        setIsLoading(true)
-        translate(text, sourceLanguage, targetLanguage, saveToDb)
-      }, 100)
+      // Clear previous translation and set loading state immediately
+      setTranslatedText('')
+      setError(null)
+      setIsLoading(true)
+      translate(text, sourceLanguage, targetLanguage, saveToDb)
     }, 500),
     [translate]
   )

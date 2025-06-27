@@ -18,7 +18,12 @@ export function useTranslationHistory() {
       if (page === 1) {
         setTranslations(response.translations)
       } else {
-        setTranslations(prev => [...prev, ...response.translations])
+        setTranslations(prev => {
+          // Deduplicate by ID to prevent duplicate keys
+          const existingIds = new Set(prev.map(t => t.id))
+          const newTranslations = response.translations.filter(t => !existingIds.has(t.id))
+          return [...prev, ...newTranslations]
+        })
       }
       
       setCurrentPage(response.pagination.current_page)
@@ -42,11 +47,20 @@ export function useTranslationHistory() {
   const addTranslation = useCallback((translation: Omit<TranslationHistory, 'id' | 'timestamp' | 'was_cached'>) => {
     const newTranslation: TranslationHistory = {
       ...translation,
-      id: Date.now(),
+      id: -(Date.now() + Math.random()), // Negative ID to avoid conflicts with database IDs
       timestamp: new Date().toISOString(),
       was_cached: false
     }
-    setTranslations(prev => [newTranslation, ...prev.filter(t => t.id !== newTranslation.id)])
+    setTranslations(prev => {
+      // Remove any existing translation with the same content to avoid duplicates
+      const filtered = prev.filter(t => 
+        t.id !== newTranslation.id && 
+        !(t.input_text === translation.input_text && 
+          t.source_language === translation.source_language && 
+          t.target_language === translation.target_language)
+      )
+      return [newTranslation, ...filtered]
+    })
   }, [])
 
   const updateTranslation = useCallback(async (id: number, outputText: string) => {
@@ -65,7 +79,11 @@ export function useTranslationHistory() {
 
   const deleteTranslation = useCallback(async (id: number) => {
     try {
-      await deleteTranslationApi(id)
+      // Only call API for positive IDs (real database records)
+      if (id > 0) {
+        await deleteTranslationApi(id)
+      }
+      // Always remove from local state
       setTranslations(prev => prev.filter(translation => translation.id !== id))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete translation')
