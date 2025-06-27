@@ -3,10 +3,10 @@
 import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authService } from '@/lib/services/auth.service'
-import { TranslationChat } from '@/components/translation-chat'
+import { FlashcardsTab } from '@/components/flashcards-tab'
 import { AuthenticatedLayout } from '@/components/authenticated-layout'
 
-export default function TranslatePage() {
+export default function FlashcardsPage() {
   const router = useRouter()
 
   useEffect(() => {
@@ -19,8 +19,8 @@ export default function TranslatePage() {
   return (
     <AuthenticatedLayout>
       <div className="h-full w-full">
-        <TranslationChat />
+        <FlashcardsTab />
       </div>
     </AuthenticatedLayout>
   )
-}
+} 

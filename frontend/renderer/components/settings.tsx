@@ -8,14 +8,10 @@ import { Button } from '@/components/ui/button'
 import { useSettings } from '@/hooks/use-settings'
 import { authService } from '@/lib/services/auth.service'
 import { useRouter } from 'next/navigation'
-import { LogOut, BookOpen } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { ThemeToggle } from './theme-toggle'
 
-interface SettingsProps {
-  onFlashcardsClick?: () => void
-}
-
-export function Settings({ onFlashcardsClick }: SettingsProps) {
+export function Settings() {
   const { settings, updateSettings } = useSettings()
   const router = useRouter()
 
@@ -39,17 +35,6 @@ export function Settings({ onFlashcardsClick }: SettingsProps) {
           checked={settings.saveWords}
           onCheckedChange={(checked) => updateSettings({ saveWords: checked })}
         />
-      </div>
-
-      <div className="">
-        <Button
-          variant="outline"
-          className="w-full justify-start"
-          onClick={onFlashcardsClick}
-        >
-          <BookOpen className="h-4 w-4 mr-2" />
-          Start Flashcards
-        </Button>
       </div>
 
       <div className="flex items-center justify-between">
