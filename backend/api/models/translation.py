@@ -14,7 +14,7 @@ class Translation(models.Model):
             models.Index(fields=['source_text', 'source_language', 'target_language']),
             models.Index(fields=['last_accessed']),
         ]
-        unique_together = ['source_text', 'source_language', 'target_language']
+        unique_together = ['source_text', 'source_language', 'target_language', 'translated_text']
         
     def __str__(self):
         return f"{self.source_language} -> {self.target_language}: {self.source_text[:50]}..." 

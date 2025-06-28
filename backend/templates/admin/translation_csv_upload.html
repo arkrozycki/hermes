@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %} {% load i18n static %} {% block content %}
+<div class="content">
+  <h1>{% trans "Upload Translations from CSV" %}</h1>
+
+  <p>
+    {% trans "Select a CSV file with language-code headers (e.g. en,es,fr) and
+    click Upload." %}
+  </p>
+
+  <form method="post" enctype="multipart/form-data" style="margin-top: 20px">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+    </table>
+    <input type="submit" class="default" value="{% trans 'Upload CSV' %}" />
+  </form>
+
+  <div style="margin-top: 30px">
+    <strong>{% trans "Example CSV:" %}</strong>
+    <pre style="background: #f8f8f8; padding: 10px; border: 1px solid #ddd">
+ en,es,fr
+air,aire,air
+water,agua,eau
+    </pre>
+  </div>
+</div>
+{% endblock %}
