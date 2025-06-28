@@ -12,6 +12,7 @@ from .models import CustomUser, Translation, UserTranslationHistory
 import csv
 import io
 import logging
+from django.db import models
 
 logger = logging.getLogger(__name__)
 
@@ -369,6 +370,27 @@ class TranslationAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related()
+
+    def get_search_results(self, request, queryset, search_term):
+        """Enable exact-match search when the term starts with '='.
+
+        Example:
+            =el empleo   → matches rows where translated_text or source_text equals "el empleo" (case-insensitive)
+
+        All other searches fall back to Django's default icontains behaviour
+        provided by `search_fields`.
+        """
+        if search_term.startswith('=') and len(search_term) > 1:
+            exact_term = search_term[1:].strip()
+            queryset = queryset.filter(
+                models.Q(source_text__iexact=exact_term) |
+                models.Q(translated_text__iexact=exact_term)
+            )
+            # `False` because we didn't alter joins that could cause duplicates
+            return queryset, False
+
+        # Fallback to default behaviour (icontains search on both fields)
+        return super().get_search_results(request, queryset, search_term)
 
 @admin.register(UserTranslationHistory)
 class UserTranslationHistoryAdmin(admin.ModelAdmin):
