@@ -2,6 +2,7 @@ import { apiClient } from '../api-client'
 
 interface TranslationResponse {
   translated_text: string
+  translated_texts?: string[] // NEW: optional array of synonyms
 }
 
 // Simple cache using a Map
@@ -39,9 +40,14 @@ export async function translateText(
       },
     })
     
-    // Cache successful translation
-    translationCache.set(cacheKey, response.translated_text)
-    return response.translated_text
+    // Support for multiple translated texts (synonyms).
+    // If the API returns a list, join them with a comma and space.
+    const finalTranslation = Array.isArray(response.translated_texts) && response.translated_texts.length
+      ? response.translated_texts.join(', ')
+      : response.translated_text
+
+    translationCache.set(cacheKey, finalTranslation)
+    return finalTranslation
   } catch (error) {
     console.error('Translation error:', error)
     throw error

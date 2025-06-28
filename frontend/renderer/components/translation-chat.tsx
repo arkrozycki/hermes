@@ -17,10 +17,16 @@ const normalizeText = (text: string): string => {
 export function TranslationChat() {
   const lastProcessedTextRef = React.useRef<string>('')
   const typingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-  
+
   const { settings } = useSettings()
-  const { sourceLanguage, targetLanguage, setSourceLanguage, setTargetLanguage, swapLanguages } = useLanguage()
-  
+  const {
+    sourceLanguage,
+    targetLanguage,
+    setSourceLanguage,
+    setTargetLanguage,
+    swapLanguages
+  } = useLanguage()
+
   const {
     text,
     setText,
@@ -56,19 +62,24 @@ export function TranslationChat() {
   // Handle text changes and trigger translation
   React.useEffect(() => {
     const normalizedText = normalizeText(text)
-    
+
     // Clear any existing typing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
       typingTimeoutRef.current = null
     }
-    
+
     if (normalizedText) {
       // Only trigger translation if the text has actually changed
       if (normalizedText !== lastProcessedTextRef.current) {
         typingTimeoutRef.current = setTimeout(() => {
           lastProcessedTextRef.current = normalizedText
-          translate(normalizedText, sourceLanguage, targetLanguage, settings.saveWords)
+          translate(
+            normalizedText,
+            sourceLanguage,
+            targetLanguage,
+            settings.saveWords
+          )
         }, 500)
       }
     } else {
@@ -103,26 +114,36 @@ export function TranslationChat() {
         })
       }
     }
-  }, [translatedText, isLoading, error, addTranslation, sourceLanguage, targetLanguage, text, settings.saveWords])
+  }, [
+    translatedText,
+    isLoading,
+    error,
+    addTranslation,
+    sourceLanguage,
+    targetLanguage,
+    text,
+    settings.saveWords
+  ])
 
   // Create a temporary translation for the current text
   const currentTranslation = React.useMemo(() => {
-    const normalizedInputText = normalizeText(text);
-    if (!normalizedInputText) return null;
-    
+    const normalizedInputText = normalizeText(text)
+    if (!normalizedInputText) return null
+
     // Don't show current translation if it's already in history
-    const isInHistory = translations.some(t => 
-      normalizeText(t.input_text) === normalizedInputText &&
-      t.source_language === sourceLanguage &&
-      t.target_language === targetLanguage
-    );
-    
-    if (isInHistory) return null;
-    
+    const isInHistory = translations.some(
+      t =>
+        normalizeText(t.input_text) === normalizedInputText &&
+        t.source_language === sourceLanguage &&
+        t.target_language === targetLanguage
+    )
+
+    if (isInHistory) return null
+
     // Only show temporary translation when we're actively loading
     // This prevents showing stale translations for new input text
-    if (!isLoading) return null;
-    
+    if (!isLoading) return null
+
     return {
       id: -Date.now(), // Negative timestamp for temporary ID to avoid conflicts
       source_language: sourceLanguage,
@@ -132,13 +153,20 @@ export function TranslationChat() {
       timestamp: new Date().toISOString(),
       was_cached: false,
       is_loading: isLoading
-    };
-  }, [text, sourceLanguage, targetLanguage, isLoading, translatedText, translations]);
+    }
+  }, [
+    text,
+    sourceLanguage,
+    targetLanguage,
+    isLoading,
+    translatedText,
+    translations
+  ])
 
   return (
     <Card className="flex h-full flex-col border-0 bg-white">
       {!settings.saveWords && (
-        <Alert className="bg-yellow-50 border-yellow-200">
+        <Alert className="border-yellow-200 bg-yellow-50">
           <AlertDescription className="text-yellow-800">
             Translations will not be saved to history
           </AlertDescription>
@@ -146,13 +174,14 @@ export function TranslationChat() {
       )}
       <div className="flex-1 overflow-hidden">
         <div className="h-full">
-          {detectedSourceLanguage && detectedSourceLanguage !== sourceLanguage && (
-            <Alert>
-              <AlertDescription>
-                Detected source language: {detectedSourceLanguage}
-              </AlertDescription>
-            </Alert>
-          )}
+          {detectedSourceLanguage &&
+            detectedSourceLanguage !== sourceLanguage && (
+              <Alert>
+                <AlertDescription>
+                  Detected source language: {detectedSourceLanguage}
+                </AlertDescription>
+              </Alert>
+            )}
           <History
             translations={[
               ...(currentTranslation ? [currentTranslation] : []),
@@ -167,15 +196,15 @@ export function TranslationChat() {
         </div>
       </div>
       <div className="bg-white">
-        <Card className="border-0 shadow-md overflow-hidden bg-white">
+        <Card className="overflow-hidden border-0 bg-white shadow-md">
           <Textarea
             placeholder="Enter text to translate..."
             value={text}
             onChange={e => setText(e.target.value)}
-            className="min-h-[60px] resize-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-none bg-white"
+            className="min-h-[60px] resize-none rounded-none border-0 bg-white shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
             autoFocus
           />
-          <div className="flex items-center justify-center px-4 py-2 border-0 shadow-none bg-white">
+          <div className="flex items-center justify-center border-0 bg-white px-4 py-2 shadow-none">
             <LanguageSelector
               sourceLanguage={sourceLanguage}
               targetLanguage={targetLanguage}
@@ -189,4 +218,4 @@ export function TranslationChat() {
       </div>
     </Card>
   )
-} 
+}

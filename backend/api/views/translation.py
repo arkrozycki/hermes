@@ -78,6 +78,7 @@ def translate_text(request):
 
             logger.info(f"Cache hit for translation: {text[:50]}...")
             return Response({
+                'source_text': text,
                 'translated_text': primary_translation.translated_text,
                 'translated_texts': all_translations,
                 'source_language': primary_translation.source_language,
@@ -137,6 +138,7 @@ def translate_text(request):
 
         logger.info(f"Cache miss for translation: {text[:50]}...")
         return Response({
+            'source_text': text,
             'translated_text': translation['translatedText'],
             'translated_texts': all_translations,
             'source_language': detected_source_language,

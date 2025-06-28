@@ -58,7 +58,15 @@ export function Translation() {
         output_text: translatedText
       })
     }
-  }, [translatedText, isLoading, error, addTranslation, sourceLanguage, targetLanguage, text])
+  }, [
+    translatedText,
+    isLoading,
+    error,
+    addTranslation,
+    sourceLanguage,
+    targetLanguage,
+    text
+  ])
 
   return (
     <div className="flex flex-col gap-4">
@@ -86,10 +94,30 @@ export function Translation() {
           />
         </div>
         <div className="relative">
-          <div
-            className="min-h-[40px] w-full rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
-          >
-            {translatedText || ''}
+          <div className="border-input bg-muted/50 text-muted-foreground min-h-[40px] w-full rounded-md border px-3 py-2 text-sm">
+            {(() => {
+              const parts = translatedText
+                .split(/[\n,]+/)
+                .map(p => p.trim())
+                .filter(Boolean)
+
+              if (parts.length === 0) return null
+
+              return (
+                <>
+                  <span className="block text-right font-medium">
+                    {parts[0]}
+                  </span>
+                  {parts.slice(1).map((alt, idx) => (
+                    <span
+                      key={idx}
+                      className="mt-2 block text-right text-xs">
+                      {alt}
+                    </span>
+                  ))}
+                </>
+              )
+            })()}
           </div>
         </div>
       </div>

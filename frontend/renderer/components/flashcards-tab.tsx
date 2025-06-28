@@ -149,22 +149,19 @@ export function FlashcardsTab({
 
   const startCard = React.useCallback(() => {
     clearTimers()
-    setProgress(0)
     setCardState('source')
 
+    const indexAtStart = currentIndex // capture index for this card
+    const totalCards = flashcardsRef.current.length || 1
     let startTime = Date.now()
 
-    // Progress bar animation
+    // Progress bar animation across entire deck
     progressIntervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startTime
-      const newProgress = (elapsed / TOTAL_DURATION) * 100
+      const cardFraction = Math.min(elapsed / TOTAL_DURATION, 1) // 0..1
+      const overallProgress = ((indexAtStart + cardFraction) / totalCards) * 100
 
-      if (newProgress >= 100) {
-        setProgress(100)
-        return
-      }
-
-      setProgress(newProgress)
+      setProgress(Math.min(overallProgress, 100))
     }, 16) // ~60fps for smooth animation
 
     // Set up phase transitions with separate timeouts using current timer settings
@@ -188,7 +185,7 @@ export function FlashcardsTab({
       clearTimers()
       nextCard()
     }, TOTAL_DURATION)
-  }, [clearTimers, TOTAL_DURATION, timers, nextCard])
+  }, [clearTimers, TOTAL_DURATION, timers, nextCard, currentIndex])
 
   const fetchFlashcardsAndStart = React.useCallback(
     async (limit: number) => {
