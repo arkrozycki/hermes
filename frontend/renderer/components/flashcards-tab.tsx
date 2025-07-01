@@ -89,6 +89,7 @@ export function FlashcardsTab({
   const [progress, setProgress] = React.useState(0)
   const [cardState, setCardState] = React.useState<FlashcardState>('source')
   const [selectedLimit, setSelectedLimit] = React.useState<number>(10)
+  const [isReviewOpen, setIsReviewOpen] = React.useState(false)
 
   // Use ref to avoid stale closure issues
   const flashcardsRef = React.useRef<Flashcard[]>([])
@@ -299,7 +300,7 @@ export function FlashcardsTab({
     }
   }
 
-  const limitOptions = [5, 10, 25, 50]
+  const limitOptions = [2, 5, 10, 25, 50, 250]
 
   // Helper function to format time display
   const formatTime = (ms: number) => {
@@ -313,6 +314,32 @@ export function FlashcardsTab({
       [type]: value[0]
     }))
   }
+
+  // Shuffle helper
+  const shuffleArray = (arr: Flashcard[]) => {
+    const copy = [...arr]
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[copy[i], copy[j]] = [copy[j], copy[i]]
+    }
+    return copy
+  }
+
+  const handleAgainShuffled = React.useCallback(() => {
+    if (flashcards.length === 0) return
+
+    const shuffled = shuffleArray(flashcards)
+    clearTimers()
+    setFlashcards(shuffled)
+    setCurrentIndex(0)
+    setProgress(0)
+    setCardState('source')
+    setComponentState('running')
+
+    setTimeout(() => {
+      startCard()
+    }, 100)
+  }, [flashcards, clearTimers, startCard])
 
   return (
     <div className="h-full w-full overflow-y-auto bg-white">
@@ -340,6 +367,48 @@ export function FlashcardsTab({
               <p className="text-muted-foreground text-sm">
                 {sourceLang} → {targetLang}
               </p>
+
+              {flashcards.length > 0 && (
+                <div className="w-full max-w-md space-y-4">
+                  <Button
+                    variant="default"
+                    className="w-full"
+                    onClick={handleAgainShuffled}>
+                    Again + Shuffled
+                  </Button>
+
+                  <Collapsible
+                    open={isReviewOpen}
+                    onOpenChange={setIsReviewOpen}
+                    className="w-full">
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-between">
+                        <span className="text-sm">Review Last Session</span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${isReviewOpen ? 'rotate-180' : ''}`}
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pt-4">
+                      <div className="max-h-60 overflow-y-auto rounded border p-2 text-left text-sm">
+                        {flashcards.map((card, idx) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between border-b py-1 last:border-b-0">
+                            <span>{card.source_text}</span>
+                            <span className="font-medium">
+                              {card.translated_text}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              )}
 
               {/* Advanced Settings */}
               <Collapsible
