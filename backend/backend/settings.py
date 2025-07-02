@@ -22,18 +22,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 GOOGLE_TRANSLATE_API_KEY = os.getenv('GOOGLE_TRANSLATE_API_KEY')
 
 if not GOOGLE_TRANSLATE_API_KEY:
-    logger.warning("Google Translate API key not set")
+    logging.warning("Google Translate API key not set")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-au2dai@nkct_kg%2rrz8@a1w)0%y-4*)1_2bgt()9rd)ra3bp('
+# Set DJANGO_SECRET_KEY environment variable in production
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-au2dai@nkct_kg%2rrz8@a1w)0%y-4*)1_2bgt()9rd)ra3bp(')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Set DJANGO_DEBUG=False in production
+DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes', 'on')
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts in development. Configure properly for production!
+# Set DJANGO_ALLOWED_HOSTS as comma-separated list in production
+# Example: DJANGO_ALLOWED_HOSTS=example.com,www.example.com,api.example.com
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '*').split(',') if os.getenv('DJANGO_ALLOWED_HOSTS') else ['*']
 
 # Disable automatic slash appending
 APPEND_SLASH = False
@@ -66,8 +70,13 @@ MIDDLEWARE = [
 ]
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development! Configure properly for production
-CORS_ALLOW_CREDENTIALS = True
+# Set DJANGO_CORS_ALLOW_ALL_ORIGINS=False in production and configure specific origins
+CORS_ALLOW_ALL_ORIGINS = os.getenv('DJANGO_CORS_ALLOW_ALL_ORIGINS', 'True').lower() in ('true', '1', 'yes', 'on')
+CORS_ALLOW_CREDENTIALS = os.getenv('DJANGO_CORS_ALLOW_CREDENTIALS', 'True').lower() in ('true', '1', 'yes', 'on')
+
+# If CORS_ALLOW_ALL_ORIGINS is False, specify allowed origins
+if not CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOWED_ORIGINS = os.getenv('DJANGO_CORS_ALLOWED_ORIGINS', '').split(',') if os.getenv('DJANGO_CORS_ALLOWED_ORIGINS') else []
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -91,17 +100,33 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# Environment variables for database configuration:
+# - DATABASE_URL (full database URL) OR individual variables:
+# - DB_ENGINE (default: django.db.backends.postgresql)
+# - DB_NAME (default: hermes)
+# - DB_USER (default: hermes)
+# - DB_PASSWORD (default: hermes)
+# - DB_HOST (default: db)
+# - DB_PORT (default: 5432)
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hermes',
-        'USER': 'hermes',
-        'PASSWORD': 'hermes',
-        'HOST': 'db',  # Docker service name
-        'PORT': '5432',
+if os.getenv('DATABASE_URL'):
+    # Use DATABASE_URL if provided (common in cloud deployments)
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
     }
-}
+else:
+    # Use individual database environment variables
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+            'NAME': os.getenv('DB_NAME', 'hermes'),
+            'USER': os.getenv('DB_USER', 'hermes'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'hermes'),
+            'HOST': os.getenv('DB_HOST', 'db'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 
 # Password validation
@@ -163,14 +188,14 @@ REST_FRAMEWORK = {
 
 # JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Access token expires in 1 hour
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),     # Refresh token expires in 5 days
-    'ROTATE_REFRESH_TOKENS': True,                   # Get new refresh token with each refresh
-    'BLACKLIST_AFTER_ROTATION': True,                # Blacklist old refresh tokens
-    'UPDATE_LAST_LOGIN': True,                       # Update last login timestamp
-    'ALGORITHM': 'HS256',                            # Algorithm used to sign the token
-    'SIGNING_KEY': SECRET_KEY,                       # Key used to sign the token
-    'AUTH_HEADER_TYPES': ('Bearer',),               # Authorization header type
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', '60'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.getenv('JWT_REFRESH_TOKEN_LIFETIME_DAYS', '5'))),
+    'ROTATE_REFRESH_TOKENS': os.getenv('JWT_ROTATE_REFRESH_TOKENS', 'True').lower() in ('true', '1', 'yes', 'on'),
+    'BLACKLIST_AFTER_ROTATION': os.getenv('JWT_BLACKLIST_AFTER_ROTATION', 'True').lower() in ('true', '1', 'yes', 'on'),
+    'UPDATE_LAST_LOGIN': os.getenv('JWT_UPDATE_LAST_LOGIN', 'True').lower() in ('true', '1', 'yes', 'on'),
+    'ALGORITHM': os.getenv('JWT_ALGORITHM', 'HS256'),
+    'SIGNING_KEY': os.getenv('JWT_SIGNING_KEY', SECRET_KEY),
+    'AUTH_HEADER_TYPES': (os.getenv('JWT_AUTH_HEADER_TYPE', 'Bearer'),),
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'USER_ID_FIELD': 'id',
@@ -178,6 +203,8 @@ SIMPLE_JWT = {
 }
 
 # Logging configuration
+LOG_LEVEL = os.getenv('DJANGO_LOG_LEVEL', 'DEBUG').upper()
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -188,12 +215,12 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'DEBUG',
+        'level': LOG_LEVEL,
     },
     'loggers': {
         'api': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': LOG_LEVEL,
             'propagate': True,
         },
     },
