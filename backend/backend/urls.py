@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 urlpatterns = [
     path('admin-ark/', admin.site.urls),  # Admin with trailing slash
-    re_path(r'^admin$', RedirectView.as_view(url='/admin/', permanent=True)),  # Redirect admin without slash to admin with slash
     path('api/', include('api.urls')),  # API with trailing slash for proper URL handling
 ]
 
