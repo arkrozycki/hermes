@@ -154,7 +154,7 @@ export function FlashcardsTab({
 
     const indexAtStart = currentIndex // capture index for this card
     const totalCards = flashcardsRef.current.length || 1
-    let startTime = Date.now()
+    const startTime = Date.now()
 
     // Progress bar animation across entire deck
     progressIntervalRef.current = setInterval(() => {

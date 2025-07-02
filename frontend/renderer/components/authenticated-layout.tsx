@@ -22,13 +22,19 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const pathname = usePathname()
   
   // Determine active tab based on current path
-  const activeTab = pathname === '/flashcards' ? 'flashcards' : 'translate'
+  const activeTab = pathname === '/flashcards' 
+    ? 'flashcards' 
+    : pathname === '/roleplay' 
+    ? 'roleplay' 
+    : 'translate'
   
   const handleTabChange = (value: string) => {
     if (value === 'translate') {
       router.push('/translate')
     } else if (value === 'flashcards') {
       router.push('/flashcards')
+    } else if (value === 'roleplay') {
+      router.push('/roleplay')
     }
   }
 

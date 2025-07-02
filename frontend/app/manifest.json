@@ -1,77 +1,59 @@
 {
-  "name": "Hermes",
+  "name": "Hermes Translation App",
   "short_name": "Hermes",
-  "description": "Hermes Application",
+  "description": "AI-powered translation with beautiful UI",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "theme_colors": [
-    {
-      "media": "(prefers-color-scheme: light)",
-      "color": "#ffffff"
-    },
-    {
-      "media": "(prefers-color-scheme: dark)",
-      "color": "#000000"
-    }
-  ],
+  "theme_color": "#000000",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
       "src": "/icons/light/web/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any",
-      "media": "(prefers-color-scheme: light)"
-    },
-    {
-      "src": "/icons/dark/web/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any",
-      "media": "(prefers-color-scheme: dark)"
+      "purpose": "any"
     },
     {
       "src": "/icons/light/web/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any",
-      "media": "(prefers-color-scheme: light)"
-    },
-    {
-      "src": "/icons/dark/web/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any",
-      "media": "(prefers-color-scheme: dark)"
+      "purpose": "any"
     },
     {
       "src": "/icons/light/web/maskable-icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable",
-      "media": "(prefers-color-scheme: light)"
-    },
-    {
-      "src": "/icons/dark/web/maskable-icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable",
-      "media": "(prefers-color-scheme: dark)"
+      "purpose": "maskable"
     },
     {
       "src": "/icons/light/web/maskable-icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable",
-      "media": "(prefers-color-scheme: light)"
+      "purpose": "maskable"
     },
     {
-      "src": "/icons/dark/web/maskable-icon-512x512.png",
-      "sizes": "512x512",
+      "src": "/icons/light/web/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png",
-      "purpose": "maskable",
-      "media": "(prefers-color-scheme: dark)"
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Translate",
+      "short_name": "Translate",
+      "description": "Quick translation",
+      "url": "/translate",
+      "icons": [
+        {
+          "src": "/icons/light/web/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 } 

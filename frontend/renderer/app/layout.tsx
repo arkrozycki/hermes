@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils'
 import { Metadata } from 'next'
 import ThemeProvider from '@/components/providers/theme-provider'
 import { SettingsProvider } from '@/hooks/use-settings'
-import { registerServiceWorker } from './service-worker-registration'
+import { registerServiceWorker, setupInstallPrompt } from './service-worker-registration'
+import { InstallBanner } from '@/components/install-banner'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -51,6 +52,7 @@ export default function RootLayout({
 }>) {
   if (typeof window !== 'undefined') {
     registerServiceWorker()
+    setupInstallPrompt()
   }
 
   return (
@@ -61,7 +63,12 @@ export default function RootLayout({
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Hermes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, minimum-scale=1, user-scalable=yes, viewport-fit=cover" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icons/light/web/favicon.ico" media="(prefers-color-scheme: light)" />
         <link rel="icon" href="/icons/dark/web/favicon.ico" media="(prefers-color-scheme: dark)" />
@@ -83,6 +90,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange>
             {children}
+            <InstallBanner />
           </ThemeProvider>
         </SettingsProvider>
       </body>
